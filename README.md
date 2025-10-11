@@ -153,6 +153,26 @@ git commit -m "fix: resolve payment gateway issue"
 git commit -m "docs: update README with setup instructions"
 ```
 
+### CI/CD Workflows
+
+This project has automated CI/CD workflows that run on every push and pull request:
+
+#### 🔍 Commitlint (CI Workflow)
+- **Validates** all commit messages follow the [Conventional Commits](https://www.conventionalcommits.org/) format
+- **Runs on**: Every push and pull request
+- **Required format**: `type(scope): description`
+- **Common types**: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+
+#### 🏷️ Label Checker
+- **Validates** that pull requests have required labels before merging
+- **Required labels** (one from each group):
+  - **Type**: `Type:Easy`, `Type:Medium`, or `Type:Hard`
+  - **Semver**: `Semver:major`, `Semver:minor`, or `Semver:patch`
+  - **Status**: `PR:Accept`
+- **Runs on**: Pull request opened, edited, synchronized, reopened, labeled, or unlabeled events
+
+All CI checks must pass before a pull request can be merged.
+
 ---
 
 ## Contributing
@@ -171,8 +191,9 @@ Please read our [Contributing Guide](.github/Contributor_Guide/Contributing.md) 
 
 Make sure to:
 - Follow the [Code of Conduct](CODE_OF_CONDUCT.md)
-- Write clear commit messages
-- Add appropriate labels to your PR
+- Write clear commit messages following the conventional commits format
+- Add appropriate labels to your PR (Type, Semver, and PR:Accept)
+- Ensure all CI checks pass
 - Update documentation as needed
 
 ---
