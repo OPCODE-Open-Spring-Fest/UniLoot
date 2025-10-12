@@ -1,12 +1,26 @@
 {
-  "devDependencies": {
-    "@commitlint/cli": "^19.1.0",
-    "@commitlint/config-conventional": "^19.1.0",
-    "husky": "^9.0.11"
+  "name": "opcode",
+  "version": "1.0.0",
+  "description": "backend",
+  "homepage": "https://github.com/OPCODE-Open-Spring-Fest/UniLoot#readme",
+  "bugs": {
+    "url": "https://github.com/OPCODE-Open-Spring-Fest/UniLoot/issues"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OPCODE-Open-Spring-Fest/UniLoot.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
   "scripts": {
     "prepare": "husky",
     "commitlint": "commitlint --edit"
   },
-  "type": "module"
+  "devDependencies": {
+    "@commitlint/cli": "^19.1.0",
+    "@commitlint/config-conventional": "^19.1.0",
+    "husky": "^9.0.11"
+  }
 }
