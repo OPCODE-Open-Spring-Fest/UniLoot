@@ -6,11 +6,13 @@ import healthRoutes from './routes/healthRoutes';
 
 const app: Application = express();
 
+
 // Middleware setup
 app.use(cors());
 app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
 
 // API Routes
 app.use('/api/health', healthRoutes);
