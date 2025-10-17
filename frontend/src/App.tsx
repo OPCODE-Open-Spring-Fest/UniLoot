@@ -5,6 +5,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import SignUp from "./pages/Signup";
 import SignIn from "./pages/Signin";
+import Browse from "./pages/Browse";
+import Sell from "./pages/Sell";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -16,6 +18,8 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/signin" element={<SignIn />} />
+          <Route path="/browse" element={<Browse />} />
+          <Route path="/sell" element={<Sell />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

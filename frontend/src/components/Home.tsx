@@ -9,14 +9,12 @@ const Hero: React.FC = () => {
 
   const handleBuyClick = () => {
     console.log('Buy button clicked - Navigate to browse page');
-    // TODO: Implement navigation when browse page is ready
-    // navigate('/browse');
+    navigate('/browse');
   };
 
   const handleSellClick = () => {
     console.log('Sell button clicked - Navigate to sell page');
-    // TODO: Implement navigation when sell page is ready
-    // navigate('/sell');
+    navigate('/sell');
   };
 
   return (
