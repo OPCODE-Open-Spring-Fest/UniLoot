@@ -1,9 +1,24 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import heroImage from "../assets/ex4.png";
 import { ArrowRight, ShoppingCart, Tag  } from "lucide-react";
 
 const Hero: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleBuyClick = () => {
+    console.log('Buy button clicked - Navigate to browse page');
+    // TODO: Implement navigation when browse page is ready
+    // navigate('/browse');
+  };
+
+  const handleSellClick = () => {
+    console.log('Sell button clicked - Navigate to sell page');
+    // TODO: Implement navigation when sell page is ready
+    // navigate('/sell');
+  };
+
   return (
     <section className="relative w-full min-h-[calc(100vh-80px)] flex items-center justify-center overflow-hidden text-black">
       {/* bg */}
@@ -33,6 +48,7 @@ const Hero: React.FC = () => {
           <div className="pt-2 flex flex-row sm:flex-row gap-4 justify-center lg:justify-start">
            <Button
   size="lg"
+  onClick={handleBuyClick}
   className="relative overflow-hidden text-base text-white bg-blue-800 hover:text-blue-800 hover:border-4 border-blue-800 rounded-lg group px-6 py-3 font-semibold transition-all duration-300"
 >
   <span className="absolute inset-0 bg-white scale-x-0 origin-left group-hover:scale-x-100 transition-transform duration-300 rounded-lg z-0"></span>
@@ -44,6 +60,7 @@ const Hero: React.FC = () => {
 </Button>
             <Button
   size="lg"
+  onClick={handleSellClick}
   className="relative overflow-hidden text-base text-blue-800 hover:text-white border-4 border-b-blue-800 hover:border-blue-800 rounded-lg group px-6 py-3 font-semibold transition-all duration-300"
 >
   <span className="absolute inset-0 bg-blue-800 scale-x-0 origin-left group-hover:scale-x-100 transition-transform duration-300 rounded-lg z-0"></span>
