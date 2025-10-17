@@ -1,5 +1,8 @@
 # UniLoot 🎓🛒  
 *Your Campus Marketplace. Sell your legacy, find your loot.*
+<img width="1897" height="877" alt="image" src="https://github.com/user-attachments/assets/4f4a952a-3c70-4428-91bf-207a60150806" />
+<img width="1905" height="852" alt="image" src="https://github.com/user-attachments/assets/a51052f3-9fe0-41ce-95c5-9599512fbd2c" />
+<img width="1898" height="858" alt="image" src="https://github.com/user-attachments/assets/3ad02a3c-9c15-4fe2-8a32-fa6786d40aed" />
 
 <div align="center">
 
