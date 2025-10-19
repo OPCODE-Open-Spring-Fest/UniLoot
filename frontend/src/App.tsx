@@ -8,13 +8,18 @@ import SignIn from "./pages/Signin";
 import Browse from "./pages/Browse";
 import Sell from "./pages/Sell";
 import ProductDetailsPage from "./pages/ProductDetail";
+import Navbar from "./components/Navbar";
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
+      
       <BrowserRouter>
+            <Navbar />
+      <div className="pt-[50px]">
+
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/signup" element={<SignUp />} />
@@ -23,6 +28,7 @@ const App = () => (
           <Route path="/product/:id" element={<ProductDetailsPage />} />
           <Route path="/sell" element={<Sell />} />
         </Routes>
+        </div>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
