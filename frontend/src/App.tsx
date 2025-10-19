@@ -7,7 +7,7 @@ import SignUp from "./pages/Signup";
 import SignIn from "./pages/Signin";
 import Browse from "./pages/Browse";
 import Sell from "./pages/Sell";
-// import ProductDetailsPage from "./pages/ProductDetail";
+import ProductDetailsPage from "./pages/ProductDetail";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -20,7 +20,7 @@ const App = () => (
           <Route path="/signup" element={<SignUp />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/browse" element={<Browse />} />
-          {/* <Route path="/product/:id" element={<ProductDetailsPage />} /> */}
+          <Route path="/product/:id" element={<ProductDetailsPage />} />
           <Route path="/sell" element={<Sell />} />
         </Routes>
       </BrowserRouter>
