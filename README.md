@@ -9,7 +9,6 @@
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 ![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen)
 ![Build Passing](https://img.shields.io/badge/build-passing-green)
-![Label Checker](https://github.com/OPCODE-Open-Spring-Fest/UniLoot/actions/workflows/checklabels.yaml/badge.svg)
 
 </div>
 
