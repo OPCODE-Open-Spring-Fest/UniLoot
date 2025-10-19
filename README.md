@@ -9,8 +9,7 @@
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 ![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen)
 ![Build Passing](https://img.shields.io/badge/build-passing-green)
-![CI](https://github.com/OPCODE-Open-Spring-Fest/UniLoot/workflows/CI/badge.svg)
-![Label Checker](https://github.com/OPCODE-Open-Spring-Fest/UniLoot/workflows/Label%20Checker/badge.svg)
+![Label Checker](https://github.com/OPCODE-Open-Spring-Fest/UniLoot/actions/workflows/checklabels.yaml/badge.svg)
 
 </div>
 
@@ -156,15 +155,15 @@ git commit -m "fix: resolve payment gateway issue"
 git commit -m "docs: update README with setup instructions"
 ```
 
-### CI/CD Workflows
+### Commit Message Validation
 
-This project has automated CI/CD workflows that run on every push and pull request:
-
-#### 🔍 Commitlint (CI Workflow)
+#### 🔍 Commitlint (Local Git Hooks)
 - **Validates** all commit messages follow the [Conventional Commits](https://www.conventionalcommits.org/) format
-- **Runs on**: Every push and pull request
+- **Runs on**: Every commit (via Husky git hooks)
 - **Required format**: `type(scope): description`
 - **Common types**: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+
+### GitHub Actions Workflows
 
 #### 🏷️ Label Checker
 - **Validates** that pull requests have required labels before merging
@@ -174,7 +173,7 @@ This project has automated CI/CD workflows that run on every push and pull reque
   - **Status**: `PR:Accept`
 - **Runs on**: Pull request opened, edited, synchronized, reopened, labeled, or unlabeled events
 
-All CI checks must pass before a pull request can be merged.
+All checks must pass before a pull request can be merged.
 
 ---
 
@@ -196,7 +195,7 @@ Make sure to:
 - Follow the [Code of Conduct](CODE_OF_CONDUCT.md)
 - Write clear commit messages following the conventional commits format
 - Add appropriate labels to your PR (Type, Semver, and PR:Accept)
-- Ensure all CI checks pass
+- Ensure all GitHub Actions checks pass
 - Update documentation as needed
 
 ---
