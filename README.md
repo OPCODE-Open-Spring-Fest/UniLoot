@@ -9,8 +9,6 @@
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 ![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen)
 ![Build Passing](https://img.shields.io/badge/build-passing-green)
-![CI](https://github.com/OPCODE-Open-Spring-Fest/UniLoot/workflows/CI/badge.svg)
-![Label Checker](https://github.com/OPCODE-Open-Spring-Fest/UniLoot/workflows/Label%20Checker/badge.svg)
 
 </div>
 
@@ -147,24 +145,16 @@ UniLoot/
 
 ### Development
 
-This project uses conventional commits. Make sure your commit messages follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+Make sure your commit messages are clear and descriptive.
 
 ```bash
 # Example commit messages
-git commit -m "feat: add user authentication"
-git commit -m "fix: resolve payment gateway issue"
-git commit -m "docs: update README with setup instructions"
+git commit -m "Add user authentication feature"
+git commit -m "Fix payment gateway issue"
+git commit -m "Update README with setup instructions"
 ```
 
-### CI/CD Workflows
-
-This project has automated CI/CD workflows that run on every push and pull request:
-
-#### 🔍 Commitlint (CI Workflow)
-- **Validates** all commit messages follow the [Conventional Commits](https://www.conventionalcommits.org/) format
-- **Runs on**: Every push and pull request
-- **Required format**: `type(scope): description`
-- **Common types**: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+### GitHub Actions Workflows
 
 #### 🏷️ Label Checker
 - **Validates** that pull requests have required labels before merging
@@ -174,7 +164,7 @@ This project has automated CI/CD workflows that run on every push and pull reque
   - **Status**: `PR:Accept`
 - **Runs on**: Pull request opened, edited, synchronized, reopened, labeled, or unlabeled events
 
-All CI checks must pass before a pull request can be merged.
+All checks must pass before a pull request can be merged.
 
 ---
 
@@ -188,15 +178,15 @@ Please read our [Contributing Guide](.github/Contributor_Guide/Contributing.md) 
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes following [conventional commits](.github/Contributor_Guide/commiting.md)
+3. Commit your changes with clear and descriptive commit messages
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
 Make sure to:
 - Follow the [Code of Conduct](CODE_OF_CONDUCT.md)
-- Write clear commit messages following the conventional commits format
+- Write clear and descriptive commit messages
 - Add appropriate labels to your PR (Type, Semver, and PR:Accept)
-- Ensure all CI checks pass
+- Ensure all GitHub Actions checks pass
 - Update documentation as needed
 
 ---
