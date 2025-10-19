@@ -145,22 +145,14 @@ UniLoot/
 
 ### Development
 
-This project uses conventional commits. Make sure your commit messages follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+Make sure your commit messages are clear and descriptive.
 
 ```bash
 # Example commit messages
-git commit -m "feat: add user authentication"
-git commit -m "fix: resolve payment gateway issue"
-git commit -m "docs: update README with setup instructions"
+git commit -m "Add user authentication feature"
+git commit -m "Fix payment gateway issue"
+git commit -m "Update README with setup instructions"
 ```
-
-### Commit Message Validation
-
-#### 🔍 Commitlint (Local Git Hooks)
-- **Validates** all commit messages follow the [Conventional Commits](https://www.conventionalcommits.org/) format
-- **Runs on**: Every commit (via Husky git hooks)
-- **Required format**: `type(scope): description`
-- **Common types**: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 
 ### GitHub Actions Workflows
 
@@ -186,13 +178,13 @@ Please read our [Contributing Guide](.github/Contributor_Guide/Contributing.md) 
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes following [conventional commits](.github/Contributor_Guide/commiting.md)
+3. Commit your changes with clear and descriptive commit messages
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
 Make sure to:
 - Follow the [Code of Conduct](CODE_OF_CONDUCT.md)
-- Write clear commit messages following the conventional commits format
+- Write clear and descriptive commit messages
 - Add appropriate labels to your PR (Type, Semver, and PR:Accept)
 - Ensure all GitHub Actions checks pass
 - Update documentation as needed
