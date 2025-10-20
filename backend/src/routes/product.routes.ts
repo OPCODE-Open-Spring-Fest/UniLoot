@@ -10,7 +10,6 @@ import {
 
 const router = Router();
 
-// CRUD routes (protected)
 // router.post("/", verifyAuth, createProduct);
 router.post("/", createProduct);
 router.get("/", getProducts);
@@ -21,3 +20,4 @@ router.put("/:id", updateProduct);
 router.delete("/:id", deleteProduct);
 
 export default router;
+
