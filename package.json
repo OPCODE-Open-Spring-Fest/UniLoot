@@ -11,5 +11,8 @@
     "prepare": "husky",
     "commitlint": "commitlint --edit"
   },
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "nodemon": "^3.1.10"
+  }
 }
