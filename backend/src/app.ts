@@ -14,6 +14,7 @@ app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+
 // API Routes
 app.use('/api/health', healthRoutes);
 app.use("/api/products", productRoutes);
