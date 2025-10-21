@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
+// Dummy product data
 const allProducts = [
   { 
     id: 1, 
@@ -11,9 +12,8 @@ const allProducts = [
     description: "A comprehensive calculus guide ideal for engineering and science students. Covers differential, integral, and multivariable calculus with step-by-step examples and university-level exercises. Perfect for semester preparation and concept building.", 
     images: ["/book1.jpg"], 
     seller: { name: "Shubham", Used:"1.2 year", email: "xyz@gmail.com" }, 
-    auction: { isAuction: false } 
+    auction: { isAuction: true, highestBid: 50, minIncrement: 5, timeLeft: "10h 45m" } 
   },
-
   { 
     id: 2, 
     title: "Laptop Stand", 
@@ -61,7 +61,7 @@ const allProducts = [
     description: "Adjustable LED desk lamp with 3 brightness levels. Energy-efficient, flexible design suitable for night study sessions. USB rechargeable and portable — perfect for hostel or dorm desk setups.", 
     images: ["/lamp1.jpg"], 
     seller: { name: "Tony Stark", Used:"2 year", email: "xyz@gmail.com" }, 
-    auction: { isAuction: false } 
+    auction: { isAuction: true, highestBid: 18, minIncrement: 2, timeLeft: "5h 20m" } 
   },
 
   { 
@@ -88,26 +88,30 @@ const allProducts = [
 export default function ProductDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const product = allProducts.find((p) => p.id === parseInt(id));
 
+  // Find product by ID
+  const product = allProducts.find((p) => p.id === parseInt(id));
   if (!product) return <div className="p-12 text-center">Product not found.</div>;
 
   const [mainImage, setMainImage] = useState(product.images[0]);
+
+  // Local bid state
   const [bid, setBid] = useState(
     product.auction.isAuction ? product.auction.highestBid + product.auction.minIncrement : 0
   );
 
   const placeBid = () => {
-    if (bid > product.auction.highestBid) {
+    if (bid >= product.auction.highestBid + product.auction.minIncrement) {
       alert(`Bid of ₹${bid} placed successfully!`);
+      product.auction.highestBid = bid; 
+      setBid(bid + product.auction.minIncrement); 
     } else {
-      alert("Bid must be higher than current highest bid!");
+      alert(`Bid must be at least ₹${product.auction.highestBid + product.auction.minIncrement}`);
     }
   };
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 px-4 py-10">
-      {/* Background Blobs */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-blue-400 rounded-full opacity-20 blur-3xl animate-blob"></div>
         <div className="absolute top-0 -right-32 w-96 h-96 bg-blue-400 rounded-full opacity-20 blur-3xl animate-blob animation-delay-2000"></div>
