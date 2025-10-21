@@ -9,6 +9,7 @@ import Browse from "./pages/Browse";
 import Sell from "./pages/Sell";
 import ProductDetailsPage from "./pages/ProductDetail";
 import Navbar from "./components/Navbar";
+import Dashboard from "./pages/Dashboard";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/browse" element={<Browse />} />
           <Route path="/product/:id" element={<ProductDetailsPage />} />
           <Route path="/sell" element={<Sell />} />
+          <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
         </div>
       </BrowserRouter>
