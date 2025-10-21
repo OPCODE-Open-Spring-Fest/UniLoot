@@ -23,10 +23,15 @@ app.get("/", (_req, res) => {
     res.send("API is running 🚀");
 });
 
-// MongoDB connect (example)
-mongoose
-    .connect(process.env.MONGO_URI || "")
-    .then(() => console.log("MongoDB connected"))
-    .catch((err) => console.error("MongoDB connection error:", err));
+// MongoDB connect (optional)
+const mongoUri = process.env.MONGO_URI;
+if (mongoUri && (mongoUri.startsWith("mongodb://") || mongoUri.startsWith("mongodb+srv://"))) {
+    mongoose
+        .connect(mongoUri)
+        .then(() => console.log("MongoDB connected"))
+        .catch((err) => console.error("MongoDB connection error:", err));
+} else {
+    console.warn("MONGO_URI not set or invalid. Skipping MongoDB connection. Set MONGO_URI in .env to enable DB.");
+}
 
 export default app;
