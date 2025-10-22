@@ -4,7 +4,7 @@
   "description": "Backend for UniLoot - college-exclusive e-commerce platform",
   "main": "server.ts",
   "scripts": {
-  "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
     "start": "nodemon dist/server.js"
   },
