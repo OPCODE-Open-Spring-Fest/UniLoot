@@ -1,45 +1,27 @@
-// import express, { Application } from 'express';
-// import cors from 'cors';
-// import morgan from 'morgan';
-// import bodyParser from 'body-parser';
-// import healthRoutes from './routes/healthRoutes';
-
-// const app: Application = express();
-
-
-// // Middleware setup
-// app.use(cors());
-// app.use(morgan('dev'));
-// app.use(bodyParser.json());
-// app.use(bodyParser.urlencoded({ extended: true }));
-
-
-// // API Routes
-// app.use('/api/health', healthRoutes);
-
-// export default app;
-
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
 import healthRoutes from './routes/healthRoutes';
 
-// 1. Imports needed for JWT/Auth
+// Consolidated Imports
+import productRoutes from "./routes/product.routes";
+import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import cookieParser from "cookie-parser";
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from "./controllers/auth";
 import { authenticate, AuthRequest } from "./middleware/authMiddleware";
 
 const app: Application = express();
-
+import dotenv from "dotenv";
+dotenv.config();
 
 // Middleware setup
 app.use(cors());
 app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-// 2. Middleware needed for Auth
+// Middleware needed for Auth
 app.use(cookieParser());
 
 
@@ -141,5 +123,21 @@ app.get("/protected", authenticate, (req: AuthRequest, res: Response) => {
 
 // Existing API Routes
 app.use('/api/health', healthRoutes);
+app.use("/api/products", productRoutes);
+// Default
+app.get("/", (_req, res) => {
+    res.send("API is running ");
+});
+
+// MongoDB connect (optional)
+const mongoUri = process.env.MONGO_URI;
+if (mongoUri && (mongoUri.startsWith("mongodb://") || mongoUri.startsWith("mongodb+srv://"))) {
+    mongoose
+        .connect(mongoUri)
+        .then(() => console.log("MongoDB connected"))
+        .catch((err) => console.error("MongoDB connection error:", err));
+} else {
+    console.warn("MONGO_URI not set or invalid. Skipping MongoDB connection. Set MONGO_URI in .env to enable DB.");
+}
 
 export default app;
