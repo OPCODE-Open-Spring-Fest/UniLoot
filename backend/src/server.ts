@@ -59,15 +59,6 @@ app.post("/refresh", (req, res) => {
     try {
         const payload = verifyRefreshToken(token);
         const storedToken = refreshTokens.get(payload.sub);
-
-        console.log("--- REFRESH TOKEN COMPARISON DEBUG ---");
-        console.log(`User ID (sub): ${payload.sub}`);
-        console.log(`Token from request (RT): ${token}`);
-        console.log(`Stored token from Map: ${storedToken}`);
-        console.log(`Tokens are strictly equal (storedToken === token): ${storedToken === token}`);
-        console.log(`Type of request token: ${typeof token}`);
-        console.log(`Type of stored token: ${typeof storedToken}`);
-        console.log("--------------------------------------");
         
         if (!storedToken) {
             return res.status(401).json({ error: "Session not found or already logged out" });
