@@ -3,6 +3,8 @@ import cors from 'cors';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
 import healthRoutes from './routes/healthRoutes';
+import userRoutes from "./routes/user.routes";
+
 
 // Consolidated Imports
 import productRoutes from "./routes/product.routes";
@@ -124,6 +126,8 @@ app.get("/protected", authenticate, (req: AuthRequest, res: Response) => {
 // Existing API Routes
 app.use('/api/health', healthRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/users", userRoutes);
+
 // Default
 app.get("/", (_req, res) => {
     res.send("API is running ");
