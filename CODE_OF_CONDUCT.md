@@ -126,3 +126,14 @@ enforcement ladder](https://github.com/mozilla/diversity).
 For answers to common questions about this code of conduct, see the FAQ at
 https://www.contributor-covenant.org/faq. Translations are available at
 https://www.contributor-covenant.org/translations.
+
+## Project Status Updates
+
+To keep the community informed and help with onboarding and debugging, contributors should also keep the project's `PROJECT_STATUS.md` up to date when making changes that affect configuration, runtime behavior, scripts, or major features. Examples include:
+
+- Adding or changing routes or API endpoints
+- Changing dev/start scripts or build tools
+- Updating or removing CI hooks and developer tooling
+- Adding or removing major dependencies
+
+When you open a pull request that makes such changes, please update `PROJECT_STATUS.md` with a short note (what changed, date, and any local steps needed to run or test). This helps maintainers and new contributors quickly understand the current project health.

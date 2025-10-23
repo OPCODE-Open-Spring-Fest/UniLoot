@@ -13,6 +13,7 @@ import { CartProvider } from "./components/CartContext.jsx";
 import Home from "./pages/Home.jsx";
 import Cart from "./pages/Cart.jsx";
 import Payment from "./pages/Payment";
+import Dashboard from "./pages/Dashboard";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -36,6 +37,7 @@ const App = () => (
           <Route path="/cart" element={<Cart />} />
           <Route path="/payment" element={<Payment />} />
           <Route path="/sell" element={<Sell />} />
+          <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
         </CartProvider>
         </div>
