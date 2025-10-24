@@ -8,6 +8,7 @@ import userRoutes from "./routes/user.routes";
 
 // Consolidated Imports
 import productRoutes from "./routes/product.routes";
+import cartRoutes from "./routes/cartRoutes"; 
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import cookieParser from "cookie-parser";
@@ -127,6 +128,7 @@ app.get("/protected", authenticate, (req: AuthRequest, res: Response) => {
 app.use('/api/health', healthRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/cart", cartRoutes);
 
 // Default
 app.get("/", (_req, res) => {
