@@ -63,7 +63,7 @@ const Sell = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex items-center justify-center px-4 py-12">
+  <div className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex items-center justify-center px-4 py-12 dark:bg-gradient-to-br dark:from-slate-900 dark:via-black dark:to-slate-900 dark:text-gray-200">
       {/* Background blobs */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-blue-400 rounded-full opacity-20 blur-3xl animate-blob"></div>
@@ -71,12 +71,12 @@ const Sell = () => {
         <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-blue-400 rounded-full opacity-20 blur-2xl animate-blob animation-delay-4000"></div>
       </div>
 
-      <Card className="w-full max-w-2xl bg-white/90 backdrop-blur-md border-2 border-blue-100 shadow-xl">
+  <Card className="w-full max-w-2xl bg-white/90 backdrop-blur-md border-2 border-blue-100 shadow-xl dark:bg-slate-800/90 dark:border-slate-700">
         <CardHeader className="text-center space-y-2">
-          <CardTitle className="text-4xl font-extrabold text-blue-800">
+          <CardTitle className="text-4xl font-extrabold text-blue-800 dark:text-blue-300">
             Sell Your Item
           </CardTitle>
-          <CardDescription className="text-lg text-gray-600">
+          <CardDescription className="text-lg text-gray-600 dark:text-gray-300">
             List your items and connect with buyers on campus
           </CardDescription>
         </CardHeader>

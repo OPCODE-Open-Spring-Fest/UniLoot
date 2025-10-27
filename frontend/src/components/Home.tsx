@@ -32,7 +32,7 @@ const Hero: React.FC = () => {
         {/* Left Content */}
     <div className="space-y-6 text-center lg:text-left">
 
-  <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-800 leading-tight tracking-tighter ml-2">
+  <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-800 leading-tight tracking-tighter ml-2 dark:text-gray-200">
     UniLoot - Your<br />
     <span className="text-blue-800">Campus Marketplace,</span><br />
     Simplified!

@@ -111,7 +111,7 @@ export default function ProductDetailsPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 px-4 py-10">
+    <div className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 px-4 py-10 dark:from-slate-900 dark:via-black dark:to-slate-900 dark:text-gray-200">
       <div className="absolute inset-0 -z-10">
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-blue-400 rounded-full opacity-20 blur-3xl animate-blob"></div>
         <div className="absolute top-0 -right-32 w-96 h-96 bg-blue-400 rounded-full opacity-20 blur-3xl animate-blob animation-delay-2000"></div>
@@ -123,13 +123,13 @@ export default function ProductDetailsPage() {
         <Button
           onClick={() => navigate(-1)}
           variant="outline"
-          className="flex items-center mb-6 border-2 border-blue-700 text-blue-700 hover:bg-blue-700 hover:text-white"
+          className="flex items-center mb-6 border-2 border-blue-700 text-blue-700 hover:bg-blue-700 hover:text-white dark:text-blue-300"
         >
           <ArrowLeft className="mr-2 h-4 w-4" /> Back
         </Button>
 
         {/* Product Content */}
-        <div className="flex flex-col md:flex-row bg-white rounded-2xl shadow-lg overflow-hidden border border-blue-100">
+        <div className="flex flex-col md:flex-row bg-white rounded-2xl shadow-lg overflow-hidden border border-blue-100 dark:from-slate-900 dark:via-black dark:to-slate-900 dark:text-gray-200">
           {/* Left- Image Section */}
           <div className="flex-1 p-6 flex flex-col items-center">
             <img

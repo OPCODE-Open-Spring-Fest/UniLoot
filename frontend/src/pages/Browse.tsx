@@ -172,7 +172,7 @@ const Browse = () => {
     });
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 px-4 py-8">
+  <div className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 px-4 py-8 dark:bg-gradient-to-br dark:from-slate-900 dark:via-black dark:to-slate-900 dark:text-gray-200">
       <div className="absolute inset-0 -z-10">
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-blue-400 rounded-full opacity-20 blur-3xl animate-blob"></div>
         <div className="absolute top-0 -right-32 w-96 h-96 bg-blue-400 rounded-full opacity-20 blur-3xl animate-blob animation-delay-2000"></div>
@@ -182,10 +182,10 @@ const Browse = () => {
       <div className="container mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-blue-800 mb-4">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-blue-800 mb-4 dark:text-blue-300">
             Browse Products
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-gray-600 dark:text-gray-300">
             Find what you need from fellow students
           </p>
         </div>
