@@ -17,7 +17,7 @@ const auctionSchema = new mongoose.Schema({
   },
   currentHighestBid: {
     type: Number,
-    default: 0,
+    default: function () { return this.startPrice; },
   },
   highestBidder: {
     type: mongoose.Schema.Types.ObjectId,
