@@ -1,41 +1,28 @@
-import { Request, Response, NextFunction } from 'express';
-import { verifyAccessToken } from '../controllers/auth';
+// src/middlewares/authMiddleware.ts
+import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
+import { User } from "../models/user.model";
 
-export interface AuthenticatedRequest extends Request {
+const JWT_SECRET = process.env.JWT_SECRET || "secretkey";
+
+export interface AuthRequest extends Request {
     user?: any;
 }
 
-export type AuthRequest = AuthenticatedRequest;
+export const protect = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    let token;
 
-// (Middleware file - authMiddleware.ts)
-
-export function authenticate(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-    const header = req.headers.authorization;
-    const token = header?.startsWith('Bearer ') ? header.slice(7) : undefined;
-
-    if (!token) {
-        // Use 401 for NO credentials (token missing entirely)
-        return res.status(401).json({ error: 'No token provided' });
+    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+        token = req.headers.authorization.split(" ")[1];
     }
+
+    if (!token) return res.status(401).json({ message: "Not authorized, no token" });
 
     try {
-        const payload = verifyAccessToken(token);
-        req.user = payload;
+        const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
+        req.user = await User.findById(decoded.id).select("-password");
         next();
-    } catch {
-        // Use 403 for INVALID credentials (token present but invalid/expired/rejected)
-        // This is often seen as a better status for expired tokens.
-        return res.status(403).json({ error: 'Invalid or expired token' });
+    } catch (error) {
+        res.status(401).json({ message: "Not authorized, token failed" });
     }
-}
-export function authorizeRole(role: string) {
-    return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-        if (!req.user) {
-            return res.status(401).json({ error: 'Not authenticated' });
-        }
-        if (req.user.role !== role) {
-            return res.status(403).json({ error: 'Forbidden' });
-        }
-        next();
-    };
-}
+};
