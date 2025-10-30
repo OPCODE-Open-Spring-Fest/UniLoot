@@ -223,10 +223,11 @@ const Browse = () => {
 
               {/* Category */}
               <div className="mt-4">
-                <label className="block text-gray-700 mb-2 font-medium">
+                <label htmlFor="category" className="block text-gray-700 mb-2 font-medium">
                   Category
                 </label>
                 <select
+                  id="category"
                   className="w-full border-2 border-blue-200 rounded-lg p-3 focus:outline-none focus:border-blue-500"
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}

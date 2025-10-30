@@ -93,6 +93,7 @@ const Navbar: React.FC = () => {
         </div>
 
         <button
+          aria-label="Toggle menu"
           onClick={() => setIsOpen(!isOpen)}
           className="md:hidden text-blue-800 dark:text-blue-300 focus:outline-none"
         >
