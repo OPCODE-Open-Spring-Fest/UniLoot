@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Moon, Sun } from "lucide-react";
+import { Menu, X, Moon, Sun, ShoppingCart } from "lucide-react";
+import { useCart } from "./CartContext";
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
 
-    const getInitialTheme = () =>
-      typeof document !== "undefined" && document.documentElement.classList.contains("dark")
-        ? ("dark" as const)
-        : ("light" as const);
+  const getInitialTheme = () =>
+    typeof document !== "undefined" && document.documentElement.classList.contains("dark")
+      ? ("dark" as const)
+      : ("light" as const);
 
-    const [theme, setTheme] = useState<"light" | "dark">(getInitialTheme);
+  const [theme, setTheme] = useState<"light" | "dark">(getInitialTheme);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -38,6 +39,23 @@ const Navbar: React.FC = () => {
     { name: "Browse", path: "/browse" },
     { name: "Sell", path: "/sell" },
   ];
+
+  // Cart integration
+  const { state } = useCart();
+  const totalCount = state.items.reduce((sum, it) => sum + (it.quantity || 0), 0);
+
+  const prevCountRef = useRef<number>(totalCount);
+  const [bump, setBump] = useState(false);
+
+  useEffect(() => {
+    const prev = prevCountRef.current;
+    if (totalCount > prev) {
+      setBump(true);
+      const t = setTimeout(() => setBump(false), 600);
+      return () => clearTimeout(t);
+    }
+    prevCountRef.current = totalCount;
+  }, [totalCount]);
 
   return (
     <nav className="w-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-sm fixed top-0 left-0 z-50 transition-colors">
@@ -69,6 +87,7 @@ const Navbar: React.FC = () => {
           <button
             onClick={toggleTheme}
             className="p-2 rounded-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300"
+            aria-label="Toggle theme"
           >
             {theme === "light" ? (
               <Sun size={20} className="transition-transform duration-300 rotate-0 text-gray-700 dark:text-gray-200" />
@@ -76,6 +95,30 @@ const Navbar: React.FC = () => {
               <Moon size={20} className="transition-transform duration-300 rotate-0 text-gray-700 dark:text-gray-200" />
             )}
           </button>
+
+          <Button
+            variant="ghost"
+            className="relative p-2 border-2 border-transparent text-blue-800 hover:bg-blue-100 dark:text-blue-300"
+            onClick={() => navigate("/cart")}
+            aria-label="Open cart"
+          >
+            <span
+              className={`inline-flex items-center justify-center w-9 h-9 rounded-md transition-transform duration-300 ${
+                bump ? "transform scale-110 animate-bounce" : ""
+              }`}
+            >
+              <ShoppingCart className="w-5 h-5" />
+            </span>
+
+            {/* badge */}
+            <span
+              className={`absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-red-600 text-white text-xs font-semibold h-5 px-1.5 transition-all duration-300 ${
+                totalCount === 0 ? "opacity-0 pointer-events-none scale-75" : "opacity-100 scale-100"
+              }`}
+            >
+              {totalCount}
+            </span>
+          </Button>
 
           <Button
             variant="outline"
@@ -118,12 +161,28 @@ const Navbar: React.FC = () => {
               </button>
             ))}
 
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300"
-            >
-              {theme === "light" ? <Sun size={22} /> : <Moon size={22} />}
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300"
+                aria-label="Toggle theme"
+              >
+                {theme === "light" ? <Sun size={22} /> : <Moon size={22} />}
+              </button>
+
+              <button
+                onClick={() => { setIsOpen(false); navigate("/cart"); }}
+                className="relative inline-flex items-center justify-center p-2 rounded-md text-blue-800 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-slate-800"
+                aria-label="Open cart"
+              >
+                <span className={`inline-flex items-center justify-center w-9 h-9 rounded-md transition-transform duration-300 ${bump ? "transform scale-110 animate-bounce" : ""}`}>
+                  <ShoppingCart size={20} />
+                </span>
+                <span className={`absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-red-600 text-white text-xs font-semibold h-5 px-1.5 ${totalCount === 0 ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+                  {totalCount}
+                </span>
+              </button>
+            </div>
 
             <div className="flex flex-col gap-2 pt-3 w-4/5">
               <Button

@@ -6,13 +6,15 @@ import {
   getCart,
   checkout,
 } from "../controllers/cart.controller";
+import { authenticate } from "../middleware/authMiddleware";
 
 const router: Router = express.Router();
 
-router.post("/", addItem);
-router.patch("/:itemId", updateQuantity);
-router.delete("/:itemId", removeItem);
-router.get("/", getCart);
-router.post("/checkout", checkout);
+//Protected routes
+router.post("/", authenticate, addItem);
+router.patch("/:itemId", authenticate, updateQuantity);
+router.delete("/:itemId", authenticate, removeItem);
+router.get("/", authenticate, getCart);
+router.post("/checkout", authenticate, checkout);
 
 export default router;
