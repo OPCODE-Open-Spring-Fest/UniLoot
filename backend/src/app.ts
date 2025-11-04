@@ -14,9 +14,10 @@ import bcrypt from "bcryptjs";
 import cookieParser from "cookie-parser";
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from "./controllers/auth";
 import { authenticate, AuthRequest } from "./middleware/authMiddleware";
+import dotenv from "dotenv";
 
 const app: Application = express();
-import dotenv from "dotenv";
+
 dotenv.config();
 
 // Middleware setup

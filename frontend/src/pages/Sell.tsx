@@ -7,7 +7,10 @@ import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { toast } from "../hooks/use-toast";
-import { Upload, DollarSign } from "lucide-react";
+import { Upload, X as XIcon, DollarSign } from "lucide-react";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { storage } from "../firebaseConfig";
+
 
 interface SellFormData {
   title: string;
@@ -17,11 +20,17 @@ interface SellFormData {
   condition: string;
 }
 
+const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
 const Sell = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedCondition, setSelectedCondition] = useState("");
-  
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const [firebaseImageUrl, setFirebaseImageUrl] = useState<string>("");
+
   const {
     register,
     handleSubmit,
@@ -29,32 +38,85 @@ const Sell = () => {
     reset,
   } = useForm<SellFormData>();
 
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      toast({ title: "Invalid file", description: "Only JPG, PNG, WEBP allowed.", variant: "destructive" });
+      return;
+    }
+    if (file.size > MAX_IMAGE_SIZE) {
+      toast({ title: "Image too large", description: "Max size is 2MB.", variant: "destructive" });
+      return;
+    }
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  }
+
+  function handleRemoveImage() {
+    setImageFile(null);
+    setImagePreview("");
+    setFirebaseImageUrl("");
+  }
+
+  //Upload image to Firebase Storage
+  async function uploadImageToFirebase(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const storageRef = ref(storage, `products/${Date.now()}-${file.name}`);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+      uploadTask.on(
+        "state_changed",
+        null,
+        (error) => reject(error),
+        async () => {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          resolve(downloadURL);
+        }
+      );
+    });
+  }
+
   const onSubmit = async (data: SellFormData) => {
     setIsLoading(true);
     try {
-      // Mock API call - replace with actual API later
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const listingData = {
-        ...data,
-        category: selectedCategory,
-        condition: selectedCondition,
-      };
-      
-      console.log("Listing created:", listingData);
-      
+      let imageUrl = "";
+      if (imageFile) {
+        imageUrl = await uploadImageToFirebase(imageFile);
+        setFirebaseImageUrl(imageUrl);
+      }
+      //Now send product data to backend
+      const res = await fetch("http://localhost:5000/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: data.title,
+          description: data.description,
+          price: data.price,
+          category: selectedCategory,
+          condition: selectedCondition,
+          stock: 1,
+          imageUrl 
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to create product");
+      const product = await res.json();
+
       toast({
         title: "Success!",
         description: "Your item has been listed successfully.",
       });
-      
+
       reset();
       setSelectedCategory("");
       setSelectedCondition("");
-    } catch (error) {
+      setImageFile(null);
+      setImagePreview("");
+      setFirebaseImageUrl("");
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to list your item. Please try again.",
+        description: error.message || "Failed to list your item. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -63,15 +125,13 @@ const Sell = () => {
   };
 
   return (
-  <div className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex items-center justify-center px-4 py-12 dark:bg-gradient-to-br dark:from-slate-900 dark:via-black dark:to-slate-900 dark:text-gray-200">
-      {/* Background blobs */}
+    <div className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex items-center justify-center px-4 py-12 dark:bg-gradient-to-br dark:from-slate-900 dark:via-black dark:to-slate-900 dark:text-gray-200">
       <div className="absolute inset-0 -z-10">
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-blue-400 rounded-full opacity-20 blur-3xl animate-blob"></div>
         <div className="absolute top-0 -right-32 w-96 h-96 bg-blue-400 rounded-full opacity-20 blur-3xl animate-blob animation-delay-2000"></div>
         <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-blue-400 rounded-full opacity-20 blur-2xl animate-blob animation-delay-4000"></div>
       </div>
-
-  <Card className="w-full max-w-2xl bg-white/90 backdrop-blur-md border-2 border-blue-100 shadow-xl dark:bg-slate-800/90 dark:border-slate-700">
+      <Card className="w-full max-w-2xl bg-white/90 backdrop-blur-md border-2 border-blue-100 shadow-xl dark:bg-slate-800/90 dark:border-slate-700">
         <CardHeader className="text-center space-y-2">
           <CardTitle className="text-4xl font-extrabold text-blue-800 dark:text-blue-300">
             Sell Your Item
@@ -80,7 +140,6 @@ const Sell = () => {
             List your items and connect with buyers on campus
           </CardDescription>
         </CardHeader>
-
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Title */}
@@ -188,16 +247,37 @@ const Sell = () => {
               </Select>
             </div>
 
-            {/* Image Upload Placeholder */}
+            {/* Image Upload */}
             <div className="space-y-2">
               <Label className="text-sm font-medium text-gray-700">
                 Images
               </Label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer">
-                <Upload className="mx-auto h-12 w-12 text-gray-400 mb-2" />
-                <p className="text-sm text-gray-600">
-                  Click to upload images (Coming soon)
-                </p>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer flex flex-col items-center">
+                {imagePreview ? (
+                  <div className="relative inline-block">
+                    <img src={imagePreview} alt="preview" className="max-h-48 rounded-lg mb-2" />
+                    <button type="button" onClick={handleRemoveImage} className="absolute top-2 right-2 bg-white rounded-full p-1 shadow hover:bg-gray-100">
+                      <XIcon className="h-4 w-4 text-red-500" />
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <Upload className="mx-auto h-12 w-12 text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-600">
+                      Click to upload images (Max 2MB, JPG/PNG/WEBP)
+                    </p>
+                  </>
+                )}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  id="product-image"
+                  onChange={handleImageChange}
+                />
+                <label htmlFor="product-image" className="inline-block mt-2 px-4 py-2 bg-blue-600 text-white rounded cursor-pointer hover:bg-blue-700">
+                  {imagePreview ? "Change Image" : "Upload Image"}
+                </label>
               </div>
             </div>
 
