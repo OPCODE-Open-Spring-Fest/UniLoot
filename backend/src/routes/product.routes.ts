@@ -6,7 +6,6 @@ import {
     updateProduct,
     deleteProduct,
 } from "../controllers/product.controller";
-// import { verifyAuth } from "../middleware/auth.middleware";
 
 const router = Router();
 

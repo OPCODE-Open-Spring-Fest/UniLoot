@@ -60,14 +60,10 @@ app.post("/login", async (req: Request, res: Response) => {
     const accessToken = signAccessToken(payload);
     const refreshToken = signRefreshToken(payload);
 
-    refreshTokens.set(user.id, refreshToken);
 
-    res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        sameSite: "strict",
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+// app.get("/protected", authenticate, (req: AuthRequest, res: Response) => {
+//     res.json({ message: "Protected route accessed", user: req.user });
+// });
 
     res.json({ accessToken });
 });
@@ -206,6 +202,7 @@ app.use("/api", authRoutes);
 app.get("/", (_req, res) => {
     res.send("API is running");
 });
+app.use("/api/users", userRoutes);
 
 // ------------------- DATABASE -------------------
 
