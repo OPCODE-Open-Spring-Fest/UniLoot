@@ -3,23 +3,26 @@ import Product from "../models/product.model";
 
 export const createProduct = async (req: Request, res: Response) => {
   try {
-    const { name, description, price, category, stock } = req.body;
+    const { name, description, price, category, stock, imageUrl, condition } = req.body;
 
-    if (!name || !description || !price) {
-      return res.status(400).json({ message: "Missing required fields" });
+    if (!name || !description || !price || !category || !stock) {
+      return res.status(400).json({ error: "Missing required field(s)" });
     }
 
-    const product = await Product.create({
+    const product = new Product({
       name,
       description,
       price,
       category,
       stock,
+      imageUrl,
+      condition,
     });
-    return res.status(201).json(product);
-  } catch (error) {
-    console.error("Create Product Error:", error);
-    res.status(500).json({ message: "Server error" });
+
+    await product.save();
+    res.status(201).json(product);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Server error" });
   }
 };
 
