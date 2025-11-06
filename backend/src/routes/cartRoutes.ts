@@ -6,15 +6,23 @@ import {
   getCart,
   checkout,
 } from "../controllers/cart.controller";
-import { authenticate } from "../middleware/authMiddleware";
+import { protect } from "../middleware/authMiddleware";
+import validateRequest from "../middleware/validateRequest";
+import {
+  addItemSchema,
+  removeItemSchema,
+  updateQuantitySchema,
+  getCartSchema,
+  checkoutSchema,
+} from "../validations/cartValidation";
 
 const router: Router = express.Router();
 
 //Protected routes
-router.post("/", authenticate, addItem);
-router.patch("/:itemId", authenticate, updateQuantity);
-router.delete("/:itemId", authenticate, removeItem);
-router.get("/", authenticate, getCart);
-router.post("/checkout", authenticate, checkout);
+router.post("/add", protect, validateRequest(addItemSchema), addItem);
+router.patch("/:itemId", protect, validateRequest(updateQuantitySchema), updateQuantity);
+router.delete("/:itemId", protect, removeItem);
+router.get("/", protect, getCart);
+router.post("/checkout", protect, validateRequest(checkoutSchema), checkout);
 
 export default router;

@@ -36,7 +36,6 @@ app.use('/api/health', healthRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/cart", cartRoutes);
-app.use("/api/users", userRoutes);
 
 // MongoDB connect (optional)
 const mongoUri = process.env.MONGO_URI;
