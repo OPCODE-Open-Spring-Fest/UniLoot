@@ -1,16 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useCart } from "../components/CartContext";
-
-/**
- * Updated ProductDetail.tsx
- * - Converted to TSX
- * - "Buy Now" adds to cart via CartContext and navigates to /payment
- * - Auction "Place Bid" attempts to call backend auction endpoint (POST /api/auctions/:id/bid)
- *   and falls back to local alert if backend not reachable.
- */
 
 type AuctionInfo = {
   isAuction: boolean;
@@ -18,18 +10,22 @@ type AuctionInfo = {
   minIncrement?: number;
   timeLeft?: string;
 };
+type SellerInfo = { name: string; Used?: string; email?: string };
 
 type Product = {
-  id: number;
+  id: number | string;
   title: string;
+  name?: string; 
   price: number;
   description: string;
   images: string[];
-  seller: { name: string; Used?: string; email?: string };
+  seller: SellerInfo;
   auction: AuctionInfo;
+  imageUrl?: string;
+  [key: string]: any; 
 };
 
-const allProducts: Product[] = [
+const demoProducts: Product[] = [
   { id: 1, title: "Calculus Textbook", price: 45, description: "A comprehensive calculus guide ideal for engineering and science students. Covers differential, integral, and multivariable calculus with step-by-step examples and university-level exercises. Perfect for semester preparation and concept building.", images: ["/book1.jpg"], seller: { name: "Shubham", Used: "1.2 year", email: "xyz@gmail.com" }, auction: { isAuction: true, highestBid: 50, minIncrement: 5, timeLeft: "10h 45m" } },
   { id: 2, title: "Laptop Stand", price: 20, description: "Ergonomic aluminum laptop stand that improves posture and cooling. Lightweight, foldable, and ideal for long study sessions in hostels or libraries. Adjustable height ensures comfort while typing or attending online classes.", images: ["/laptop1.jpg"], seller: { name: "Steve Rogers", Used: "12 months", email: "xyz@gmail.com" }, auction: { isAuction: false } },
   { id: 3, title: "Study Notes - Physics", price: 10, description: "Handwritten physics notes neatly organized chapter-wise, covering Mechanics, Thermodynamics, Electromagnetism, and Modern Physics. Simplified concepts and formulas for quick revision and last-minute preparation.", images: ["/notes1.jpg"], seller: { name: "Bruce Banner", Used: "1 year", email: "xyz@gmail.com" }, auction: { isAuction: false } },
@@ -45,12 +41,57 @@ export default function ProductDetailsPage() {
   const navigate = useNavigate();
   const { addItem } = useCart();
 
-  const product = allProducts.find((p) => p.id === Number(id));
-  if (!product) return <div className="p-12 text-center">Product not found.</div>;
-
-  const [mainImage, setMainImage] = useState(product.images[0]);
-  const [bid, setBid] = useState(product.auction.isAuction ? (product.auction.highestBid || 0) + (product.auction.minIncrement || 1) : 0);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [mainImage, setMainImage] = useState<string>("/placeholder.png");
+  const [bid, setBid] = useState<number>(0);
   const [isBidding, setIsBidding] = useState(false);
+
+  // Load product from backend
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchProduct() {
+      try {
+        const res = await fetch(`http://localhost:5000/api/products/${id}`);
+        if (!res.ok) throw new Error("Backend product not found");
+        const prod = await res.json();
+
+        const prodNorm: Product = {
+          id: prod._id ?? prod.id,
+          title: prod.name ?? prod.title ?? "",
+          price: prod.price,
+          description: prod.description ?? "",
+          images: prod.imageUrl ? [prod.imageUrl] : [],
+          seller: { name: "User", Used: "-", email: prod.sellerEmail || "" },
+          auction: { isAuction: false },
+          imageUrl: prod.imageUrl,
+          ...prod
+        };
+        if (isMounted) {
+          setProduct(prodNorm);
+          setMainImage(prodNorm.images?.[0] ?? prodNorm.imageUrl ?? "/placeholder.png");
+        }
+      } catch {
+        // fallback to dummy
+        const local = demoProducts.find((p) => String(p.id) === String(id));
+        if (isMounted && local) {
+          setProduct(local);
+          setMainImage(local.images?.[0] ?? "/placeholder.png");
+        } else if (isMounted) {
+          setProduct(null);
+        }
+      }
+    }
+    fetchProduct();
+    return () => { isMounted = false; };
+  }, [id]);
+
+  useEffect(() => {
+    if (product?.auction?.isAuction) {
+      setBid((product.auction.highestBid || 0) + (product.auction.minIncrement || 1));
+    }
+  }, [product]);
+
+  if (!product) return <div className="p-12 text-center">Product not found.</div>;
 
   const placeBid = async () => {
     if (!product.auction.isAuction) {
@@ -65,11 +106,9 @@ export default function ProductDetailsPage() {
 
     setIsBidding(true);
     try {
-      // Try to hit backend auction endpoint
       const token = localStorage.getItem("accessToken");
       const headers: any = { "Content-Type": "application/json" };
       if (token) headers["Authorization"] = `Bearer ${token}`;
-
       const res = await fetch(`/api/auctions/${product.id}/bid`, {
         method: "POST",
         headers,
@@ -78,36 +117,39 @@ export default function ProductDetailsPage() {
 
       if (res.ok) {
         alert(`Bid of ₹${bid} placed successfully!`);
-        // optimistically update local product highestBid
-        product.auction.highestBid = bid;
-        setBid((bid || 0) + (product.auction.minIncrement || 1));
+        setProduct((prod) => prod ? ({
+          ...prod,
+          auction: { ...prod.auction, highestBid: bid },
+        }) : null);
+        setBid(bid + (product.auction.minIncrement || 1));
       } else {
-        // backend responded with error
         const errText = await res.text();
         alert(`Failed to place bid: ${errText || res.statusText}`);
       }
-    } catch (err) {
-      // Fallback offline behavior
+    } catch {
       alert(`Could not reach server. Local simulated bid of ₹${bid} placed.`);
-      product.auction.highestBid = bid;
-      setBid((bid || 0) + (product.auction.minIncrement || 1));
+      setProduct((prod) => prod ? ({
+        ...prod,
+        auction: { ...prod.auction, highestBid: bid },
+      }) : null);
+      setBid(bid + (product.auction.minIncrement || 1));
     } finally {
       setIsBidding(false);
     }
   };
 
   const handleBuyNow = async () => {
-    // add to cart via context then navigate to payment
     await addItem({
       productId: String(product.id),
-      name: product.title,
+      name: product.title ?? product.name ?? "",
       price: product.price,
       quantity: 1,
-      image: product.images?.[0],
+      image: product.images?.[0] || product.imageUrl || "/placeholder.png",
     });
     navigate("/payment");
   };
 
+  // Render UI
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 px-4 py-10 dark:from-slate-900 dark:via-black dark:to-slate-900 dark:text-gray-200">
       <div className="absolute inset-0 -z-10">
@@ -115,31 +157,27 @@ export default function ProductDetailsPage() {
         <div className="absolute top-0 -right-32 w-96 h-96 bg-blue-400 rounded-full opacity-20 blur-3xl animate-blob animation-delay-2000"></div>
         <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-blue-400 rounded-full opacity-20 blur-2xl animate-blob animation-delay-4000"></div>
       </div>
-
       <div className="max-w-6xl mx-auto">
         <Button onClick={() => navigate(-1)} variant="outline" className="flex items-center mb-6 border-2 border-blue-700 text-blue-700 hover:bg-blue-700 hover:text-white dark:text-blue-300">
           <ArrowLeft className="mr-2 h-4 w-4" /> Back
         </Button>
-
         <div className="flex flex-col md:flex-row bg-white rounded-2xl shadow-lg overflow-hidden border border-blue-100 dark:from-slate-900 dark:via-black dark:to-slate-900 dark:text-gray-200">
           <div className="flex-1 p-6 flex flex-col items-center">
-            <img src={mainImage} alt={product.title} className="rounded-xl w-full h-96 object-cover shadow-md border border-blue-100" />
+            <img src={mainImage || "/Placeholder.png"} alt={product.title ?? product.name} className="rounded-xl w-full h-96 object-cover shadow-md border border-blue-100" />
             <div className="flex gap-3 mt-4">
-              {product.images.map((img, idx) => (
+              {(product.images || []).map((img, idx) => (
                 <img key={idx} src={img} alt={`thumb-${idx}`} className={`w-20 h-20 object-cover rounded-lg cursor-pointer border-2 transition-all duration-200 ${mainImage === img ? "border-blue-600 scale-105" : "border-gray-200 hover:border-blue-400"}`} onClick={() => setMainImage(img)} />
               ))}
             </div>
           </div>
-
           <div className="flex-1 p-8 space-y-6 border-t md:border-t-0 md:border-l border-blue-100">
-            <h1 className="text-3xl md:text-4xl font-extrabold text-blue-800">{product.title}</h1>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-blue-800">{product.title ?? product.name}</h1>
             <p className="text-gray-700 text-lg leading-relaxed">{product.description}</p>
-
-            {product.auction.isAuction ? (
+            {product.auction?.isAuction ? (
               <div className="p-4 bg-blue-50 rounded-xl border border-blue-200 space-y-3">
                 <p className="text-lg font-semibold text-blue-800">Highest Bid: <span className="text-blue-600 font-bold">₹{product.auction.highestBid}</span></p>
-                <p className="text-gray-600">⏰ Time left: {product.auction.timeLeft}</p>
-                <input type="number" value={bid} onChange={(e) => setBid(Number(e.target.value))} className="border-2 border-blue-200 focus:border-blue-500 rounded-lg w-full p-2 mt-1" min={(product.auction.highestBid || 0) + (product.auction.minIncrement || 1)} />
+                <p className="text-gray-600">⏰ {product.auction.timeLeft ? `Time left: ${product.auction.timeLeft}` : ""}</p>
+                <input type="number" value={bid} onChange={e => setBid(Number(e.target.value))} className="border-2 border-blue-200 focus:border-blue-500 rounded-lg w-full p-2 mt-1" min={(product.auction.highestBid || 0) + (product.auction.minIncrement || 1)} />
                 <div className="flex gap-3">
                   <Button onClick={placeBid} className="flex-1 w-full bg-blue-700 hover:bg-blue-800 text-white" disabled={isBidding}>
                     {isBidding ? "Placing bid..." : "Place Bid"}
@@ -153,12 +191,11 @@ export default function ProductDetailsPage() {
                 <Button className="w-full bg-blue-700 hover:bg-blue-800 text-white" onClick={handleBuyNow}>Buy Now</Button>
               </div>
             )}
-
             <div className="p-5 bg-gray-50 rounded-xl border border-blue-100">
               <h3 className="font-semibold text-lg text-blue-800 mb-2">Seller Info</h3>
-              <p className="text-gray-700">👤 Name: {product.seller.name}</p>
-              <p className="text-gray-700">⭐ Used: {product.seller.Used}</p>
-              <p className="text-gray-700">📧 Email: {product.seller.email}</p>
+              <p className="text-gray-700">👤 Name: {product.seller?.name ?? "Unknown"}</p>
+              <p className="text-gray-700">⭐ Used: {product.seller?.Used ?? "-"}</p>
+              <p className="text-gray-700">📧 Email: {product.seller?.email ?? "-"}</p>
             </div>
           </div>
         </div>
