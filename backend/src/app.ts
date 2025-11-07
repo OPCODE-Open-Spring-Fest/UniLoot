@@ -7,7 +7,8 @@ import userRoutes from "./routes/user.routes";
 import productRoutes from "./routes/product.routes";
 import cartRoutes from "./routes/cartRoutes";
 import mongoose from "mongoose";
-
+import { requestLogger } from "./middleware/loggerMiddleware";
+import { errorHandler } from "./middleware/errorMiddleware";
 import cookieParser from "cookie-parser";
 
 const app = express();
@@ -23,7 +24,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Middleware needed for Auth
 app.use(cookieParser());
 
-
+app.use(requestLogger);
 
 
 // app.get("/protected", authenticate, (req: AuthRequest, res: Response) => {
@@ -48,5 +49,5 @@ if (mongoUri && (mongoUri.startsWith("mongodb://") || mongoUri.startsWith("mongo
 } else {
     console.warn("MONGO_URI not set or invalid. Skipping MongoDB connection. Set MONGO_URI in .env to enable DB.");
 }
-
+app.use(errorHandler);
 export default app;
