@@ -5,6 +5,8 @@ import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
+import { requestLogger } from "./middleware/loggerMiddleware";
+import { errorHandler } from "./middleware/errorMiddleware";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
@@ -29,6 +31,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+app.use(requestLogger);
 // Interface and mock data (temporary)
 interface User {
     id: string;
@@ -215,5 +218,5 @@ if (mongoUri && (mongoUri.startsWith("mongodb://") || mongoUri.startsWith("mongo
 } else {
     console.warn("MONGO_URI not set or invalid. Skipping MongoDB connection. Set MONGO_URI in .env to enable DB.");
 }
-
+app.use(errorHandler);
 export default app;
