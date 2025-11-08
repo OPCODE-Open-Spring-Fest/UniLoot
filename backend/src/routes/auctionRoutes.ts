@@ -3,18 +3,21 @@ import {
   createAuction,
   placeBid,
   acceptHighestBid,
+  getAuctionByProductId,
+  getAuctionBids,
 } from "../controllers/auction.controller";
-import { authenticate, authorizeRole } from "../middleware/authMiddleware";
+import { authenticate } from "../middleware/authMiddleware";
 
 const router = express.Router();
 
-//  Create a new auction (only sellers)
-router.post("/", authenticate, authorizeRole("seller"), createAuction);
+router.get("/product/:productId", getAuctionByProductId);
+router.get("/:id/bids", getAuctionBids);
+router.post("/", authenticate, createAuction);
 
-//  Place a bid (only buyers)
-router.post("/:id/bid", authenticate, authorizeRole("buyer"), placeBid);
+// Place a bid (authenticated)
+router.post("/:id/bid", authenticate, placeBid);
 
-//  Seller accepts the highest bid (only sellers)
-router.post("/:id/accept", authenticate, authorizeRole("seller"), acceptHighestBid);
+// Seller accepts the highest bid (authenticated)
+router.post("/:id/accept", authenticate, acceptHighestBid);
 
 export default router;

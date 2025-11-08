@@ -6,6 +6,7 @@ import healthRoutes from './routes/healthRoutes';
 import userRoutes from "./routes/user.routes";
 import productRoutes from "./routes/product.routes";
 import cartRoutes from "./routes/cartRoutes";
+import auctionRoutes from "./routes/auctionRoutes";
 import mongoose from "mongoose";
 import { requestLogger } from "./middleware/loggerMiddleware";
 import { errorHandler } from "./middleware/errorMiddleware";
@@ -37,7 +38,7 @@ app.use('/api/health', healthRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/cart", cartRoutes);
-app.use("/api/users", userRoutes);
+app.use("/api/auctions", auctionRoutes);
 
 // MongoDB connect (optional)
 const mongoUri = process.env.MONGO_URI;

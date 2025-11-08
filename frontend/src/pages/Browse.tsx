@@ -6,6 +6,7 @@ import { Search, ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerTitle } from "../components/ui/drawer";
 import { useCart } from "../components/CartContext";
+import { useNotification } from "../components/NotificationContext";
 
 const Browse = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const Browse = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const { addItem } = useCart();
+  const { notifyAddToCart } = useNotification();
   const demoProducts = [
     { id: "6", name: "Desk Lamp", price: "₹15", category: "Electronics", seller: "Thor", images: ["/lamp1.jpg"] },
     { id: "7", name: "Organic Chemistry Notes", price: "₹25", category: "Notes", seller: "Wanda", images: ["/notes2.jpg"] },
@@ -98,7 +100,8 @@ const Browse = () => {
       quantity: 1,
       image: product.imageUrl || (product.images?.[0]),
     });
-    alert(`${product.name} added to cart`);
+    // 3. Replace the alert with the toast notification
+    notifyAddToCart(product.name);
   };
 
   return (

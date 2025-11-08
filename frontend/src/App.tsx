@@ -13,6 +13,7 @@ import { CartProvider } from "./components/CartContext";
 import Cart from "./pages/Cart";
 import Payment from "./pages/Payment";
 import Dashboard from "./pages/Dashboard";
+import { NotificationProvider } from "./components/NotificationContext";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
+      <NotificationProvider>
       <CartProvider>
         <BrowserRouter>
           <Navbar />
@@ -38,6 +40,7 @@ const App = () => (
           </div>
         </BrowserRouter>
       </CartProvider>
+      </NotificationProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
