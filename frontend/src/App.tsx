@@ -13,6 +13,7 @@ import { CartProvider } from "./components/CartContext";
 import Cart from "./pages/Cart";
 import Payment from "./pages/Payment";
 import Dashboard from "./pages/Dashboard";
+import { NotificationProvider } from "./components/NotificationContext";
 import RequestReset from "./pages/RequestReset";
 import ResetPassword from "./pages/ResetPassword";
 
@@ -22,10 +23,11 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
-      <BrowserRouter>
-        <Navbar />
-        <div className="pt-[50px]">
-          <CartProvider>
+      <NotificationProvider>
+      <CartProvider>
+        <BrowserRouter>
+          <Navbar />
+          <div className="pt-[50px]">
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/signup" element={<SignUp />} />
@@ -42,9 +44,10 @@ const App = () => (
               <Route path="/request-reset" element={<RequestReset />} />
               <Route path="/reset-password/:token" element={<ResetPassword />} />
             </Routes>
-          </CartProvider>
-        </div>
-      </BrowserRouter>
+          </div>
+        </BrowserRouter>
+      </CartProvider>
+      </NotificationProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

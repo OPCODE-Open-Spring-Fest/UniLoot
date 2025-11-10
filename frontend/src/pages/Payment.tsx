@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "../components/CartContext";
+import { useNotification } from "../components/NotificationContext";
 
 const Payment: React.FC = () => {
   const { state, clearCart } = useCart();
   const navigate = useNavigate();
+  const { notifyBuyItem } = useNotification();
   const [paymentMethod, setPaymentMethod] = useState<"card" | "upi" | "wallet" | "netbanking">("card");
   const [formData, setFormData] = useState({
     cardNumber: "",
@@ -44,6 +46,10 @@ const Payment: React.FC = () => {
     // Simulate payment processing
     setTimeout(async () => {
       setIsProcessing(false);
+      // Notify for each purchased item
+      state.items.forEach(item => {
+        notifyBuyItem(item.name, item.price * item.quantity);
+      });
       await clearCart();
       navigate("/success", { replace: true });
     }, 2200);

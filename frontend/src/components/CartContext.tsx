@@ -1,4 +1,7 @@
 import React, { createContext, useContext, useEffect, useReducer } from "react";
+import { useNotification } from "./NotificationContext";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 export interface CartItem {
   _id?: string; 
@@ -82,6 +85,7 @@ export const useCart = (): CartContextValue => {
 
 export const CartProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
+  const { notifyAddToCart } = useNotification();
 
   useEffect(() => {
     try {
@@ -115,7 +119,7 @@ export const CartProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     const token = localStorage.getItem("accessToken");
     if (!token) return; // nothing to do
     try {
-      const res = await callBackend("/api/cart", { method: "GET", headers: getAuthHeaders() });
+      const res = await callBackend(`${API_BASE_URL}/api/cart`, { method: "GET", headers: getAuthHeaders() });
       const cart = await res.json();
       const items: CartItem[] = (cart?.items || []).map((it: any) => ({
         _id: String((it as any)._id || ""),
@@ -141,7 +145,7 @@ export const CartProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
           price: item.price,
           quantity: item.quantity,
         });
-        const res = await callBackend("/api/cart", { method: "POST", headers: getAuthHeaders(), body });
+        const res = await callBackend(`${API_BASE_URL}/api/cart`, { method: "POST", headers: getAuthHeaders(), body });
         const savedCart = await res.json();
         const items: CartItem[] = (savedCart?.items || []).map((it: any) => ({
           _id: String((it as any)._id || ""),
@@ -152,6 +156,7 @@ export const CartProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
           image: it.image,
         }));
         dispatch({ type: "SET_CART", payload: items });
+        notifyAddToCart(item.name);
         return;
       } catch (err: any) {
         if ((err as any).status === 401 || (err as any).status === 403) {
@@ -163,6 +168,7 @@ export const CartProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     }
     // Fallback
     dispatch({ type: "ADD_ITEM", payload: item });
+    notifyAddToCart(item.name);
   };
 
   const removeItemByIndex = async (index: number) => {
@@ -171,7 +177,7 @@ export const CartProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
       const item = state.items[index];
       if (item && item._id) {
         try {
-          await callBackend(`/api/cart/${item._id}`, { method: "DELETE", headers: getAuthHeaders() });
+          await callBackend(`${API_BASE_URL}/api/cart/${item._id}`, { method: "DELETE", headers: getAuthHeaders() });
           await refreshFromServer();
           return;
         } catch {
@@ -187,7 +193,7 @@ export const CartProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     const token = localStorage.getItem("accessToken");
     if (token) {
       try {
-        await callBackend(`/api/cart/${id}`, { method: "DELETE", headers: getAuthHeaders() });
+        await callBackend(`${API_BASE_URL}/api/cart/${id}`, { method: "DELETE", headers: getAuthHeaders() });
         await refreshFromServer();
         return;
       } catch {
@@ -201,7 +207,7 @@ export const CartProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     const token = localStorage.getItem("accessToken");
     if (token && params.itemId) {
       try {
-        await callBackend(`/api/cart/${params.itemId}`, {
+        await callBackend(`${API_BASE_URL}/api/cart/${params.itemId}`, {
           method: "PATCH",
           headers: getAuthHeaders(),
           body: JSON.stringify({ quantity: params.quantity }),
@@ -221,7 +227,7 @@ export const CartProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     const token = localStorage.getItem("accessToken");
     if (token) {
       try {
-        await callBackend("/api/cart/checkout", { method: "POST", headers: getAuthHeaders() });
+        await callBackend(`${API_BASE_URL}/api/cart/checkout`, { method: "POST", headers: getAuthHeaders() });
         // backend will clear cart
         await refreshFromServer();
         return;

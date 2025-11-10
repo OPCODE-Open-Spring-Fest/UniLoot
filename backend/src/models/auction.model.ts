@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
 
 const auctionSchema = new mongoose.Schema({
+  productId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Product",
+    required: true,
+  },
   itemName: {
     type: String,
     required: true,
@@ -14,6 +19,11 @@ const auctionSchema = new mongoose.Schema({
     type: Number,
     required: true,
     min: 0,
+  },
+  minIncrement: {
+    type: Number,
+    default: 100,
+    min: 1,
   },
   currentHighestBid: {
     type: Number,
