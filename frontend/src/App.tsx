@@ -15,6 +15,8 @@ import Payment from "./pages/Payment";
 import Dashboard from "./pages/Dashboard";
 import VerifyEmail from "./pages/VerifyEmail";
 import { NotificationProvider } from "./components/NotificationContext";
+import RequestReset from "./pages/RequestReset";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -34,10 +36,15 @@ const App = () => (
               <Route path="/verify/:token" element={<VerifyEmail />} />
               <Route path="/browse" element={<Browse />} />
               <Route path="/product/:id" element={<ProductDetailsPage />} />
+              <Route path="/CartHome" element={<Home />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/payment" element={<Payment />} />
               <Route path="/sell" element={<Sell />} />
               <Route path="/dashboard" element={<Dashboard />} />
+
+              {/* Added password reset routes */}
+              <Route path="/request-reset" element={<RequestReset />} />
+              <Route path="/reset-password/:token" element={<ResetPassword />} />
             </Routes>
           </div>
         </BrowserRouter>
