@@ -3,7 +3,14 @@ import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { Button } from "../components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import { InputField } from "../components/InputField";
 import { toast } from "../hooks/use-toast";
 import { mockLogin, googleLogin, SignInData } from "../lib/api";
@@ -76,7 +83,6 @@ const SignIn = () => {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden px-4 py-8">
-
       {/* Background floating blobs */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-blue-400 rounded-full opacity-30 bg-gradient-to-br from-blue-400 via-blue-100 to-blue-400 blur-3xl animate-blob"></div>
@@ -126,6 +132,16 @@ const SignIn = () => {
               })}
               error={errors.password?.message}
             />
+
+            {/* Forgot password link */}
+            <div className="text-right text-sm">
+              <Link
+                to="/request-reset"
+                className="text-blue-700 hover:text-blue-800 hover:underline font-medium transition-colors"
+              >
+                Forgot password?
+              </Link>
+            </div>
 
             <Button
               type="submit"
