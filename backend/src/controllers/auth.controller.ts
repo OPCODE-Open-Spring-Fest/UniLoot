@@ -34,16 +34,41 @@ export const register = async (req: Request, res: Response) => {
         if (existingUser) return res.status(400).json({ message: "User already exists" });
 
         const verificationToken = crypto.randomBytes(20).toString("hex");
-        const user = await User.create({ name, email, password, verificationToken });
-
-        const verificationLink = `${CLIENT_URL}/verify/${verificationToken}`;
-        await transporter.sendMail({
-            to: email,
-            subject: "Verify your email",
-            html: `<p>Click <a href="${verificationLink}">here</a> to verify your account.</p>`,
+        const isDevelopment = process.env.NODE_ENV !== "production";
+        
+        const user = await User.create({ 
+            name, 
+            email, 
+            password, 
+            verificationToken,
+            isVerified: isDevelopment 
         });
 
-        res.status(201).json({ message: "User registered. Check your email for verification link." });
+        if (isDevelopment) {
+            // In development, return verification token in response
+            res.status(201).json({ 
+                message: "User registered and auto-verified (development mode).", 
+                verificationToken: verificationToken,
+                verificationLink: `${CLIENT_URL}/verify/${verificationToken}`
+            });
+        } else {
+            // In production, send verification email
+            const verificationLink = `${CLIENT_URL}/verify/${verificationToken}`;
+            try {
+                await transporter.sendMail({
+                    to: email,
+                    subject: "Verify your email",
+                    html: `<p>Click <a href="${verificationLink}">here</a> to verify your account.</p>`,
+                });
+                res.status(201).json({ message: "User registered. Check your email for verification link." });
+            } catch (emailError) {
+                console.error("Email sending failed:", emailError);
+                res.status(201).json({ 
+                    message: "User registered. Email verification failed, but you can verify using the link below.",
+                    verificationLink: verificationLink
+                });
+            }
+        }
     } catch (error) {
         res.status(500).json({ message: "Registration failed", error });
     }
@@ -72,9 +97,17 @@ export const login = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
         const user = await User.findOne({ email });
+        const isDevelopment = process.env.NODE_ENV !== "production";
 
         if (!user) return res.status(400).json({ message: "Invalid credentials" });
-        if (!user.isVerified) return res.status(403).json({ message: "Please verify your email" });
+        if (!user.isVerified) {
+            if (isDevelopment) {
+                user.isVerified = true;
+                await user.save();
+            } else {
+                return res.status(403).json({ message: "Please verify your email" });
+            }
+        }
 
         const isMatch = await user.comparePassword(password);
         if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });

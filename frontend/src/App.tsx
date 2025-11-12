@@ -13,6 +13,7 @@ import { CartProvider } from "./components/CartContext";
 import Cart from "./pages/Cart";
 import Payment from "./pages/Payment";
 import Dashboard from "./pages/Dashboard";
+import VerifyEmail from "./pages/VerifyEmail";
 import { NotificationProvider } from "./components/NotificationContext";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/signin" element={<SignIn />} />
+              <Route path="/verify/:token" element={<VerifyEmail />} />
               <Route path="/browse" element={<Browse />} />
               <Route path="/product/:id" element={<ProductDetailsPage />} />
               <Route path="/cart" element={<Cart />} />
