@@ -126,3 +126,39 @@ export const mockLogin = async (data: SignInData): Promise<AuthResponse> => {
     throw error;
   }
 };
+
+// Google OAuth login function
+export const googleLogin = async (idToken: string): Promise<AuthResponse> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/users/google`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ idToken }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: "Google login failed" }));
+      throw new Error(errorData.message || "Google login failed");
+    }
+
+    const result = await response.json();
+    
+    // Store token
+    if (result.token) {
+      localStorage.setItem("accessToken", result.token);
+    }
+
+    return {
+      success: true,
+      message: "Login successful!",
+      user: {
+        email: result.user?.email || "",
+        id: result.user?.id || "",
+      },
+    };
+  } catch (error: any) {
+    throw error;
+  }
+};
