@@ -162,3 +162,82 @@ export const googleLogin = async (idToken: string): Promise<AuthResponse> => {
     throw error;
   }
 };
+//Payment API functions
+export interface CreateOrderResponse {
+  success: boolean;
+  order: {
+    id: string;
+    amount: number;
+    currency: string;
+    receipt: string;
+  };
+  orderId: string;
+  key: string;
+}
+
+export interface VerifyPaymentData {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+  orderId: string;
+}
+
+export const createPaymentOrder = async (): Promise<CreateOrderResponse> => {
+  const token = localStorage.getItem("accessToken");
+  if (!token) {
+    throw new Error("Not authenticated. Please login to continue.");
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/payments/create-order`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const responseData = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: "Failed to create order" }));
+      throw new Error(errorData.message || "Failed to create order");
+    }
+
+    return responseData;
+  } catch (error: any) {
+    if (error.message && error.status) {
+      throw error;
+    }
+    if (error.name === "TypeError" || error.message.includes("fetch")) {
+      throw new Error("Network error. Please check your internet connection and try again.");
+    }
+    throw error;
+  }
+};
+
+export const verifyPayment = async (data: VerifyPaymentData): Promise<any> => {
+  const token = localStorage.getItem("accessToken");
+  if (!token) {
+    throw new Error("Not authenticated");
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/payments/verify`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: "Payment verification failed" }));
+      throw new Error(errorData.message || "Payment verification failed");
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    throw error;
+  }
+};

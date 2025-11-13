@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useReducer } from "react";
+import React, { createContext, useContext, useEffect, useReducer, useCallback, useRef } from "react";
 import { useNotification } from "./NotificationContext";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
@@ -73,6 +73,7 @@ interface CartContextValue {
   updateQuantity: (params: { itemId?: string; productId?: string; quantity: number }) => Promise<void>;
   clearCart: () => Promise<void>;
   refreshFromServer: () => Promise<void>;
+  syncToBackend: () => Promise<void>;
 }
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
@@ -86,6 +87,8 @@ export const useCart = (): CartContextValue => {
 export const CartProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const { notifyAddToCart } = useNotification();
+  const isRefreshingRef = useRef(false);
+  const isSyncingRef = useRef(false);
 
   useEffect(() => {
     try {
@@ -115,9 +118,11 @@ export const CartProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     }
   };
 
-  const refreshFromServer = async () => {
+  const refreshFromServer = useCallback(async () => {
     const token = localStorage.getItem("accessToken");
-    if (!token) return; // nothing to do
+    if (!token || isRefreshingRef.current) return; 
+    
+    isRefreshingRef.current = true;
     try {
       const res = await callBackend(`${API_BASE_URL}/api/cart`, { method: "GET", headers: getAuthHeaders() });
       const cart = await res.json();
@@ -132,8 +137,62 @@ export const CartProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
       dispatch({ type: "SET_CART", payload: items });
     } catch (err) {
       // ignore 
+    } finally {
+      isRefreshingRef.current = false;
     }
-  };
+  }, []);
+  const syncToBackend = useCallback(async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token || state.items.length === 0 || isSyncingRef.current) return;
+
+    isSyncingRef.current = true;
+    try {
+      const res = await callBackend(`${API_BASE_URL}/api/cart`, { method: "GET", headers: getAuthHeaders() });
+      const serverCart = await res.json();
+      const serverItems = serverCart?.items || [];
+    
+      const currentItems = state.items; 
+      for (const localItem of currentItems) {
+        const serverItem = serverItems.find((si: any) => 
+          si.productId?.toString() === localItem.productId
+        );
+        if (!serverItem) {
+          try {
+            await callBackend(`${API_BASE_URL}/api/cart`, {
+              method: "POST",
+              headers: getAuthHeaders(),
+              body: JSON.stringify({
+                productId: localItem.productId,
+                name: localItem.name,
+                price: localItem.price,
+                quantity: localItem.quantity,
+              }),
+            });
+          } catch (err) {
+            console.warn("Failed to sync item:", localItem.name, err);
+          }
+        } else if (serverItem.quantity !== localItem.quantity && serverItem._id) {
+          try {
+            await callBackend(`${API_BASE_URL}/api/cart/${serverItem._id}`, {
+              method: "PATCH",
+              headers: getAuthHeaders(),
+              body: JSON.stringify({ quantity: localItem.quantity }),
+            });
+          } catch (err) {
+            console.warn("Failed to update item quantity:", localItem.name, err);
+          }
+        }
+      }
+
+      if (!isRefreshingRef.current) {
+        await refreshFromServer();
+      }
+    } catch (err) {
+      console.warn("Failed to sync cart to backend:", err);
+    } finally {
+      isSyncingRef.current = false;
+    }
+  }, [state.items, refreshFromServer]); 
 
   const addItem = async (item: CartItem) => {
     const token = localStorage.getItem("accessToken");
@@ -255,6 +314,7 @@ export const CartProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     updateQuantity,
     clearCart,
     refreshFromServer,
+    syncToBackend,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
