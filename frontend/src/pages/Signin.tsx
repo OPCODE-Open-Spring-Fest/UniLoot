@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -17,6 +17,7 @@ import { Loader2 } from "lucide-react";
 
 const SignIn = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -27,13 +28,15 @@ const SignIn = () => {
   const onSubmit = async (data: SignInData) => {
     setIsLoading(true);
     try {
-      const response = await mockLogin(data);
+      await mockLogin(data);
       toast({
         title: "Welcome back!",
-        description: response.message,
+        description: "Login successful!",
       });
       reset();
-      // Navigate to dashboard or home page here
+      navigate("/");
+      // Reload to update navbar
+      window.location.reload();
     } catch (error: any) {
       toast({
         title: "Error",

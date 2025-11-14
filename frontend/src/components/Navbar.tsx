@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Moon, Sun, ShoppingCart } from "lucide-react";
+import { Menu, X, Moon, Sun, ShoppingCart, LogOut, User } from "lucide-react";
 import { useCart } from "./CartContext";
+import { isAuthenticated, getCurrentUser, logout } from "../lib/api";
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -42,10 +43,25 @@ const Navbar: React.FC = () => {
 
   // Cart integration
   const { state } = useCart();
+  const [user, setUser] = useState<any>(null);
+  const [authStatus, setAuthStatus] = useState(false);
   const totalCount = state.items.reduce((sum, it) => sum + (it.quantity || 0), 0);
 
   const prevCountRef = useRef<number>(totalCount);
   const [bump, setBump] = useState(false);
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      const authenticated = isAuthenticated();
+      setAuthStatus(authenticated);
+      if (authenticated) {
+        const userData = await getCurrentUser();
+        setUser(userData);
+      }
+    };
+    checkAuth();
+  }, [location.pathname]); // Re-check when route changes
 
   useEffect(() => {
     const prev = prevCountRef.current;
@@ -120,19 +136,44 @@ const Navbar: React.FC = () => {
             </span>
           </Button>
 
-          <Button
-            variant="outline"
-            className="border-2 border-blue-800 text-blue-800 hover:bg-blue-800 hover:text-white transition dark:text-blue-300"
-            onClick={() => handleNavClick("/signin")}
-          >
-            Sign In
-          </Button>
-          <Button
-            className="bg-blue-800 text-white hover:bg-blue-900 transition"
-            onClick={() => handleNavClick("/signup")}
-          >
-            Sign Up
-          </Button>
+          {authStatus ? (
+            <>
+              <Button
+                variant="ghost"
+                className="text-blue-800 hover:bg-blue-100 dark:text-blue-300"
+                onClick={() => handleNavClick("/dashboard")}
+              >
+                <User className="mr-2 h-4 w-4" />
+                {user?.name || "Dashboard"}
+              </Button>
+              <Button
+                variant="outline"
+                className="border-2 border-blue-800 text-blue-800 hover:bg-blue-800 hover:text-white transition dark:text-blue-300"
+                onClick={() => {
+                  logout();
+                }}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="outline"
+                className="border-2 border-blue-800 text-blue-800 hover:bg-blue-800 hover:text-white transition dark:text-blue-300"
+                onClick={() => handleNavClick("/signin")}
+              >
+                Sign In
+              </Button>
+              <Button
+                className="bg-blue-800 text-white hover:bg-blue-900 transition"
+                onClick={() => handleNavClick("/signup")}
+              >
+                Sign Up
+              </Button>
+            </>
+          )}
         </div>
 
         <button
@@ -184,21 +225,54 @@ const Navbar: React.FC = () => {
               </button>
             </div>
 
-            <div className="flex flex-col gap-2 pt-3 w-4/5">
-              <Button
-                variant="outline"
-                className="border-2 border-blue-800 text-blue-800 hover:bg-blue-800 hover:text-white w-full"
-                onClick={() => handleNavClick("/signin")}
-              >
-                Sign In
-              </Button>
-              <Button
-                className="bg-blue-800 text-white hover:bg-blue-900 w-full"
-                onClick={() => handleNavClick("/signup")}
-              >
-                Sign Up
-              </Button>
-            </div>
+            {authStatus ? (
+              <div className="flex flex-col gap-2 pt-3 w-4/5">
+                <Button
+                  variant="ghost"
+                  className="w-full text-blue-800 hover:bg-blue-100 dark:text-blue-300"
+                  onClick={() => {
+                    setIsOpen(false);
+                    handleNavClick("/dashboard");
+                  }}
+                >
+                  <User className="mr-2 h-4 w-4" />
+                  {user?.name || "Dashboard"}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full border-2 border-blue-800 text-blue-800 hover:bg-blue-800 hover:text-white"
+                  onClick={() => {
+                    logout();
+                    setIsOpen(false);
+                  }}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2 pt-3 w-4/5">
+                <Button
+                  variant="outline"
+                  className="border-2 border-blue-800 text-blue-800 hover:bg-blue-800 hover:text-white w-full"
+                  onClick={() => {
+                    setIsOpen(false);
+                    handleNavClick("/signin");
+                  }}
+                >
+                  Sign In
+                </Button>
+                <Button
+                  className="bg-blue-800 text-white hover:bg-blue-900 w-full"
+                  onClick={() => {
+                    setIsOpen(false);
+                    handleNavClick("/signup");
+                  }}
+                >
+                  Sign Up
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}

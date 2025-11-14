@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
 import { InputField } from "../components/InputField";
@@ -9,6 +9,7 @@ import { mockRegister, SignUpData } from "../lib/api";
 import { Loader2 } from "lucide-react";
 
 interface SignUpFormData {
+  name?: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -16,6 +17,7 @@ interface SignUpFormData {
 
 const SignUp = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -29,12 +31,26 @@ const SignUp = () => {
   const onSubmit = async (data: SignUpFormData) => {
     setIsLoading(true);
     try {
-      const response = await mockRegister(data);
+      const result = await mockRegister({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        confirmPassword: data.confirmPassword,
+      });
+      
+      let description = result.message || "Registration successful!";
+      
+      // In development, show verification link if provided
+      if (result.verificationLink && import.meta.env.DEV) {
+        description += ` Verification link: ${result.verificationLink}`;
+      }
+      
       toast({
         title: "Success!",
-        description: response.message,
+        description: description,
       });
       reset();
+      navigate("/signin");
     } catch (error: any) {
       toast({
         title: "Error",
@@ -64,6 +80,17 @@ const SignUp = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <InputField
+              label="Name"
+              id="name"
+              type="text"
+              placeholder="Your name"
+              {...register("name", {
+                required: "Name is required",
+              })}
+              error={errors.name?.message}
+            />
+
             <InputField
               label="Email"
               id="email"
