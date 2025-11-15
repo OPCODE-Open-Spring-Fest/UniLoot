@@ -5,8 +5,10 @@ import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
+import helmet from "helmet";
 import { requestLogger } from "./middleware/loggerMiddleware";
 import { errorHandler } from "./middleware/errorMiddleware";
+import { generalRateLimiter, authRateLimiter, apiRateLimiter } from "./middleware/rateLimiter";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
@@ -36,12 +38,26 @@ dotenv.config();
 
 const app: Application = express();
 
+app.set("trust proxy", 1);
+
 // ------------------- MIDDLEWARE -------------------
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+}));
 app.use(cors());
 app.use(morgan("dev"));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json({ limit: "10mb" }));
+app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
+app.use(generalRateLimiter);
 app.use(requestLogger);
 
 // ------------------- MOCK USER DATA -------------------
@@ -69,7 +85,7 @@ const refreshTokens = new Map<string, string>();
 
 // ------------------- AUTHENTICATION ROUTES -------------------
 
-app.post("/login", async (req: Request, res: Response) => {
+app.post("/login", authRateLimiter, async (req: Request, res: Response) => {
     const { username, password } = req.body;
 
     const user = users.find((u) => u.username === username);
@@ -88,7 +104,7 @@ app.post("/login", async (req: Request, res: Response) => {
     res.json({ accessToken });
 });
 
-app.post("/refresh", (req: Request, res: Response) => {
+app.post("/refresh", authRateLimiter, (req: Request, res: Response) => {
     const token = req.cookies?.refreshToken || req.body.refreshToken;
 
     if (!token) {
@@ -145,7 +161,7 @@ app.get("/protected", authenticate, (req: AuthRequest, res: Response) => {
 
 // ------------------- PASSWORD RESET ROUTES -------------------
 
-app.post("/api/request-reset", async (req: Request, res: Response) => {
+app.post("/api/request-reset", authRateLimiter, async (req: Request, res: Response) => {
     const { email } = req.body;
     const user = users.find((u) => u.email === email);
 
@@ -180,7 +196,7 @@ app.post("/api/request-reset", async (req: Request, res: Response) => {
     }
 });
 
-app.post("/api/reset-password/:token", async (req: Request, res: Response) => {
+app.post("/api/reset-password/:token", authRateLimiter, async (req: Request, res: Response) => {
     const { token } = req.params;
     const { password } = req.body;
 
@@ -208,19 +224,19 @@ app.post("/api/reset-password/:token", async (req: Request, res: Response) => {
 app.use("/api/health", healthRoutes);
 
 // Products — junior, senior, admin
-app.use("/api/products", authenticate, authorizeRoles("junior", "senior", "admin"), productRoutes);
+app.use("/api/products", apiRateLimiter, authenticate, authorizeRoles("junior", "senior", "admin"), productRoutes);
 
 // Users — admin only
-app.use("/api/users", authenticate, authorizeRole("admin"), userRoutes);
+app.use("/api/users", apiRateLimiter, authenticate, authorizeRole("admin"), userRoutes);
 
 // Cart — all authenticated roles
-app.use("/api/cart", authenticate, authorizeRoles("junior", "senior", "admin"), cartRoutes);
+app.use("/api/cart", apiRateLimiter, authenticate, authorizeRoles("junior", "senior", "admin"), cartRoutes);
 
 // Auctions — senior + admin
-app.use("/api/auctions", authenticate, authorizeRoles("senior", "admin"), auctionRoutes);
+app.use("/api/auctions", apiRateLimiter, authenticate, authorizeRoles("senior", "admin"), auctionRoutes);
 
 // Payments — senior + admin
-app.use("/api/payments", authenticate, authorizeRoles("senior", "admin"), paymentRoutes);
+app.use("/api/payments", apiRateLimiter, authenticate, authorizeRoles("senior", "admin"), paymentRoutes);
 
 // Auth
 app.use("/api", authRoutes);
