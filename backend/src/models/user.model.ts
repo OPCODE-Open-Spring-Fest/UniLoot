@@ -10,6 +10,7 @@ export interface IUser extends Document {
     verificationToken?: string;
     resetPasswordToken?: string;
     resetPasswordExpires?: Date;
+    role: "junior" | "senior";
     comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -17,12 +18,17 @@ const userSchema = new Schema<IUser>(
     {
         name: { type: String, required: true },
         email: { type: String, required: true, unique: true },
-        password: { type: String, required: function() { return !this.googleId; } },
+        password: { type: String, required: function () { return !this.googleId; } },
         googleId: { type: String, unique: true, sparse: true },
         isVerified: { type: Boolean, default: false },
         verificationToken: { type: String },
         resetPasswordToken: { type: String },
         resetPasswordExpires: { type: Date },
+        role: {
+            type: String,
+            enum: ["junior", "senior"],
+            default: "junior",
+        },
     },
     { timestamps: true }
 );
