@@ -3,6 +3,7 @@ import Auction from "../models/auction.model";
 import Bid from "../models/bid.model";
 import Product from "../models/product.model";
 import mongoose from "mongoose";
+import { notifyNewBid, notifyBidAccepted } from "../services/notification.service";
 
 //new auction
 export const createAuction = async (req: Request, res: Response): Promise<void> => {
@@ -107,6 +108,11 @@ export const placeBid = async (req: Request, res: Response): Promise<void> => {
     auction.highestBidder = new mongoose.Types.ObjectId(userId);
     await auction.save();
 
+    // Notify seller about new bid (async, don't wait for it)
+    notifyNewBid(auction._id, bid._id, amount).catch((error) => {
+      console.error("Failed to send new bid notification:", error);
+    });
+
     res.status(201).json({
       message: "Bid placed successfully",
       bid,
@@ -153,6 +159,11 @@ export const acceptHighestBid = async (req: Request, res: Response): Promise<voi
     auction.soldTo = auction.highestBidder;
     auction.soldPrice = auction.currentHighestBid;
     await auction.save();
+
+    // Notify seller about bid acceptance (async, don't wait for it)
+    notifyBidAccepted(auction._id).catch((error) => {
+      console.error("Failed to send bid accepted notification:", error);
+    });
 
     res.status(200).json({
       message: "Bid accepted successfully",
