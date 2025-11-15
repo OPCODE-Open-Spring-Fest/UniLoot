@@ -17,6 +17,7 @@ import productRoutes from "./routes/product.routes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import authRoutes from "./routes/auth.js";
 import auctionRoutes from "./routes/auctionRoutes";
+import paymentRoutes from "./routes/paymentRoutes";
 
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from "./controllers/auth.js";
 import { authenticate, AuthRequest } from "./middleware/authMiddleware.js";
@@ -200,6 +201,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/auctions", auctionRoutes);
+app.use("/api/payments", paymentRoutes);
 app.use("/api", authRoutes);
 
 // ------------------- DEFAULT -------------------

@@ -15,6 +15,5 @@ router.get("/verify/:token", validateRequest(verifyEmailSchema), verifyEmail);
 router.post("/login", validateRequest(loginSchema), login);
 router.post("/google", googleAuth);
 router.get("/me", protect, getMe);
-router.get("/me", protect, getMe);
 
 export default router;
