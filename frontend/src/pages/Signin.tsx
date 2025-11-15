@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -12,11 +13,12 @@ import {
 } from "../components/ui/card";
 import { InputField } from "../components/InputField";
 import { toast } from "../hooks/use-toast";
-import { mockLogin, SignInData } from "../lib/api";
+import { mockLogin, googleLogin, SignInData } from "../lib/api";
 import { Loader2 } from "lucide-react";
 
 const SignIn = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const navigate = useNavigate();
   const {
     register,
@@ -46,6 +48,37 @@ const SignIn = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    setIsGoogleLoading(true);
+    try {
+      if (credentialResponse.credential) {
+        await googleLogin(credentialResponse.credential);
+        toast({
+          title: "Welcome back!",
+          description: "Login successful!",
+        });
+        navigate("/");
+        window.location.reload();
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Google login failed. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    toast({
+      title: "Error",
+      description: "Google login failed. Please try again.",
+      variant: "destructive",
+    });
   };
 
   return (
@@ -113,8 +146,8 @@ const SignIn = () => {
             <Button
               type="submit"
               className="w-full bg-blue-700 text-white hover:bg-blue-800 transition-all rounded-lg py-3 font-semibold flex justify-center items-center gap-2"
-    
-              disabled={isLoading}
+              size="lg"
+              disabled={isLoading || isGoogleLoading}
             >
               {isLoading ? (
                 <>
@@ -126,6 +159,26 @@ const SignIn = () => {
               )}
             </Button>
           </form>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-transparent px-2 text-gray-500">Or continue with</span>
+            </div>
+          </div>
+
+          <div className="w-full flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+              theme="outline"
+              size="large"
+              text="signin_with"
+              shape="rectangular"
+            />
+          </div>
         </CardContent>
 
         <CardFooter className="flex flex-col space-y-2">

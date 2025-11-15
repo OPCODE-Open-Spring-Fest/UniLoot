@@ -3,10 +3,13 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
+import { OAuth2Client } from "google-auth-library";
 import { User } from "../models/user.model";
 
 const JWT_SECRET = process.env.JWT_SECRET || "secretkey";
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
+const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 const transporter = nodemailer.createTransport({
     // service: "gmail",
@@ -100,6 +103,11 @@ export const login = async (req: Request, res: Response) => {
         const isDevelopment = process.env.NODE_ENV !== "production";
 
         if (!user) return res.status(400).json({ message: "Invalid credentials" });
+        if (!user.password) {
+            return res.status(400).json({ 
+                message: "This account was created with Google. Please sign in with Google." 
+            });
+        }
         if (!user.isVerified) {
             if (isDevelopment) {
                 user.isVerified = true;
@@ -119,6 +127,66 @@ export const login = async (req: Request, res: Response) => {
     }
 };
 
+// Google OAuth login
+export const googleAuth = async (req: Request, res: Response) => {
+    try {
+        const { idToken } = req.body;
+
+        if (!idToken) {
+            return res.status(400).json({ message: "ID token is required" });
+        }
+        if (!GOOGLE_CLIENT_ID) {
+            return res.status(500).json({ message: "Google OAuth not configured" });
+        }
+        const ticket = await client.verifyIdToken({
+            idToken,
+            audience: GOOGLE_CLIENT_ID,
+        });
+        const payload = ticket.getPayload();
+        if (!payload) {
+            return res.status(400).json({ message: "Invalid token" });
+        }
+        const { sub: googleId, email, name, picture } = payload;
+
+        if (!email || !name) {
+            return res.status(400).json({ message: "Invalid token payload" });
+        }
+        let user = await User.findOne({ googleId });
+        if (!user) {
+            user = await User.findOne({ email });
+            
+            if (user) {
+                user.googleId = googleId;
+                user.isVerified = true; 
+                await user.save();
+            } else {
+                // Create new user
+                user = await User.create({
+                    name,
+                    email,
+                    googleId,
+                    isVerified: true, 
+                });
+            }
+        }
+        // Generate JWT token
+        const token = generateToken(String(user._id));
+        res.status(200).json({
+            token,
+            user: {
+                name: user.name,
+                email: user.email,
+                picture: picture || undefined,
+            },
+        });
+    } catch (error: any) {
+        console.error("Google OAuth error:", error);
+        res.status(500).json({
+            message: "Google authentication failed",
+            error: error.message,
+        });
+    }
+};
 // Get current user
 export const getMe = async (req: Request, res: Response) => {
     try {
