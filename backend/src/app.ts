@@ -20,6 +20,7 @@ import cartRoutes from "./routes/cartRoutes.js";
 import authRoutes from "./routes/auth.js";
 import auctionRoutes from "./routes/auctionRoutes";
 import paymentRoutes from "./routes/paymentRoutes";
+import notificationRoutes from "./routes/notificationRoutes";
 
 import {
     signAccessToken,
@@ -30,8 +31,7 @@ import {
 import {
     authenticate,
     authorizeRole,
-    authorizeRoles,
-    AuthRequest
+    authorizeRoles
 } from "./middleware/authMiddleware.js";
 
 dotenv.config();
@@ -237,6 +237,9 @@ app.use("/api/auctions", apiRateLimiter, authenticate, authorizeRoles("senior", 
 
 // Payments — senior + admin
 app.use("/api/payments", apiRateLimiter, authenticate, authorizeRoles("senior", "admin"), paymentRoutes);
+
+// Notifications — all authenticated users
+app.use("/api/notifications", authenticate, notificationRoutes);
 
 // Auth
 app.use("/api", authRoutes);
