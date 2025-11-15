@@ -19,22 +19,32 @@ import authRoutes from "./routes/auth.js";
 import auctionRoutes from "./routes/auctionRoutes";
 import paymentRoutes from "./routes/paymentRoutes";
 
-import { signAccessToken, signRefreshToken, verifyRefreshToken } from "./controllers/auth.js";
-import { authenticate, AuthRequest } from "./middleware/authMiddleware.js";
+import {
+    signAccessToken,
+    signRefreshToken,
+    verifyRefreshToken
+} from "./controllers/auth.js";
+
+import {
+    authenticate,
+    authorizeRole,
+    authorizeRoles,
+    AuthRequest
+} from "./middleware/authMiddleware.js";
 
 dotenv.config();
 
 const app: Application = express();
 
-// Middleware
+// ------------------- MIDDLEWARE -------------------
 app.use(cors());
 app.use(morgan("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
-
 app.use(requestLogger);
-// Interface and mock data (temporary)
+
+// ------------------- MOCK USER DATA -------------------
 interface User {
     id: string;
     username: string;
@@ -46,7 +56,13 @@ interface User {
 }
 
 const users: User[] = [
-    { id: "1", username: "alice", passwordHash: bcrypt.hashSync("password", 8), role: "admin", email: "alice@example.com" },
+    {
+        id: "1",
+        username: "alice",
+        passwordHash: bcrypt.hashSync("password", 8),
+        role: "admin",
+        email: "alice@example.com"
+    },
 ];
 
 const refreshTokens = new Map<string, string>();
@@ -55,6 +71,7 @@ const refreshTokens = new Map<string, string>();
 
 app.post("/login", async (req: Request, res: Response) => {
     const { username, password } = req.body;
+
     const user = users.find((u) => u.username === username);
     if (!user) return res.status(401).json({ error: "Invalid credentials" });
 
@@ -65,10 +82,8 @@ app.post("/login", async (req: Request, res: Response) => {
     const accessToken = signAccessToken(payload);
     const refreshToken = signRefreshToken(payload);
 
-
-// app.get("/protected", authenticate, (req: AuthRequest, res: Response) => {
-//     res.json({ message: "Protected route accessed", user: req.user });
-// });
+    // Store refresh token for session control
+    refreshTokens.set(user.id, refreshToken);
 
     res.json({ accessToken });
 });
@@ -84,13 +99,12 @@ app.post("/refresh", (req: Request, res: Response) => {
         const payload = verifyRefreshToken(token);
         const storedToken = refreshTokens.get(payload.sub);
 
-        if (!storedToken) {
-            return res.status(401).json({ error: "Session not found or already logged out" });
-        }
+        // Validate session
+        if (!storedToken)
+            return res.status(401).json({ error: "Session not found or expired" });
 
-        if (storedToken !== token) {
-            return res.status(401).json({ error: "Token used is not the latest valid token" });
-        }
+        if (storedToken !== token)
+            return res.status(401).json({ error: "Invalid refresh token" });
 
         const cleanPayload = {
             sub: payload.sub,
@@ -111,9 +125,10 @@ app.post("/refresh", (req: Request, res: Response) => {
         });
 
         res.json({ accessToken: newAccess });
+
     } catch (error) {
-        console.error("Refresh token verification failed:", error);
-        res.status(401).json({ error: "Refresh token is expired or invalid" });
+        console.error("Refresh token error:", error);
+        res.status(401).json({ error: "Refresh token invalid or expired" });
     }
 });
 
@@ -123,16 +138,13 @@ app.post("/logout", authenticate, (req: AuthRequest, res: Response) => {
     res.status(204).send();
 });
 
+// Example protected route
 app.get("/protected", authenticate, (req: AuthRequest, res: Response) => {
     res.json({ message: "Protected route accessed", user: req.user });
 });
 
 // ------------------- PASSWORD RESET ROUTES -------------------
 
-/**
- * Step 1: Request password reset
- * Generates token, sets expiry, and emails reset link.
- */
 app.post("/api/request-reset", async (req: Request, res: Response) => {
     const { email } = req.body;
     const user = users.find((u) => u.email === email);
@@ -143,16 +155,13 @@ app.post("/api/request-reset", async (req: Request, res: Response) => {
 
     const token = crypto.randomBytes(32).toString("hex");
     user.resetPasswordToken = token;
-    user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour
+    user.resetPasswordExpires = new Date(Date.now() + 3600000);
 
-    const resetLink = `${process.env.FRONTEND_URL || "http://localhost:5173"}/reset-password/${token}`;
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${token}`;
 
     const transporter = nodemailer.createTransport({
         service: "gmail",
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
-        },
+        auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
     });
 
     const mailOptions = {
@@ -166,21 +175,20 @@ app.post("/api/request-reset", async (req: Request, res: Response) => {
         await transporter.sendMail(mailOptions);
         res.json({ msg: "Reset link sent to email" });
     } catch (error) {
-        console.error("Email send failed:", error);
-        res.status(500).json({ msg: "Failed to send reset email" });
+        console.error("Email error:", error);
+        res.status(500).json({ msg: "Failed to send email" });
     }
 });
 
-/**
- * Step 2: Reset password with token
- * Validates token, hashes new password, updates it.
- */
 app.post("/api/reset-password/:token", async (req: Request, res: Response) => {
     const { token } = req.params;
     const { password } = req.body;
 
     const user = users.find(
-        (u) => u.resetPasswordToken === token && u.resetPasswordExpires && u.resetPasswordExpires > new Date()
+        (u) =>
+            u.resetPasswordToken === token &&
+            u.resetPasswordExpires &&
+            u.resetPasswordExpires > new Date()
     );
 
     if (!user) {
@@ -194,33 +202,46 @@ app.post("/api/reset-password/:token", async (req: Request, res: Response) => {
     res.json({ msg: "Password updated successfully" });
 });
 
-// ------------------- ROUTES -------------------
+// ------------------- ROUTES WITH RBAC -------------------
 
+// Public
 app.use("/api/health", healthRoutes);
-app.use("/api/products", productRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/cart", cartRoutes);
-app.use("/api/auctions", auctionRoutes);
-app.use("/api/payments", paymentRoutes);
+
+// Products — junior, senior, admin
+app.use("/api/products", authenticate, authorizeRoles("junior", "senior", "admin"), productRoutes);
+
+// Users — admin only
+app.use("/api/users", authenticate, authorizeRole("admin"), userRoutes);
+
+// Cart — all authenticated roles
+app.use("/api/cart", authenticate, authorizeRoles("junior", "senior", "admin"), cartRoutes);
+
+// Auctions — senior + admin
+app.use("/api/auctions", authenticate, authorizeRoles("senior", "admin"), auctionRoutes);
+
+// Payments — senior + admin
+app.use("/api/payments", authenticate, authorizeRoles("senior", "admin"), paymentRoutes);
+
+// Auth
 app.use("/api", authRoutes);
 
-// ------------------- DEFAULT -------------------
-
+// ------------------- DEFAULT ROUTE -------------------
 app.get("/", (_req, res) => {
     res.send("API is running");
 });
-app.use("/api/users", userRoutes);
 
 // ------------------- DATABASE -------------------
-
 const mongoUri = process.env.MONGO_URI;
+
 if (mongoUri && (mongoUri.startsWith("mongodb://") || mongoUri.startsWith("mongodb+srv://"))) {
     mongoose
         .connect(mongoUri)
         .then(() => console.log("MongoDB connected"))
         .catch((err) => console.error("MongoDB connection error:", err));
 } else {
-    console.warn("MONGO_URI not set or invalid. Skipping MongoDB connection. Set MONGO_URI in .env to enable DB.");
+    console.warn("Invalid or missing MONGO_URI.");
 }
+
 app.use(errorHandler);
+
 export default app;
